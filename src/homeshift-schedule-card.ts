@@ -30,6 +30,24 @@ const KIND_ICONS: Record<string, string> = {
   other: "mdi:calendar-clock",
 };
 
+/** Schedules sharing a heading: those driving the same room's thermostat. */
+interface Room {
+  name: string;
+  /** Entity the schedules drive, when they drive a single one. */
+  entity?: string;
+  schedules: Schedule[];
+}
+
+/** Whether a timeline heats or cools, for the heating / cooling exclusion. */
+function climateSide(kind: string): "heat" | "cool" | undefined {
+  if (kind === "cool") return "cool";
+  if (kind === "heat" || kind === "preset") return "heat";
+  return undefined;
+}
+
+/** Order of a room's timelines: heating first, then cooling. */
+const KIND_ORDER = ["heat", "preset", "cool", "on", "off", "other"];
+
 /**
  * Kind of a timeline, for its icon: cooling wins, then heating, then
  * presets; turning off alone does not tell what the schedule is for.
@@ -272,7 +290,7 @@ export class HomeShiftScheduleCard extends LitElement {
         ${this._schedules && !schedules.length
           ? html`<div class="empty">${localize(this.hass, "timeline.empty")}</div>`
           : html`
-              ${schedules.map((s) => this._renderRow(s, nowMinutes))}
+              ${this._rooms(schedules).map((room) => this._renderRoom(room, nowMinutes))}
               <div class="axis" aria-hidden="true">
                 ${[0, 6, 12, 18, 24].map(
                   (h) => html`<span style="left: ${(h / 24) * 100}%">${h}h</span>`,
@@ -288,46 +306,77 @@ export class HomeShiftScheduleCard extends LitElement {
     `;
   }
 
-  private _renderRow(schedule: Schedule, nowMinutes?: number) {
-    const segments = daySegments(schedule);
-    const entities = scheduleEntities(schedule, true);
-    const label =
-      entities.length === 1
-        ? (this.hass.states[entities[0]]?.attributes?.friendly_name ?? entities[0])
-        : schedule.name;
-    const kind = rowKind(segments);
-    const enabled = this.hass.states[schedule.entity_id]
-      ? this.hass.states[schedule.entity_id].state !== "off"
-      : schedule.enabled;
-    const climate = entities.find((e) => e.startsWith("climate."));
-    const measured = climate ? this.hass.states[climate]?.attributes?.current_temperature : undefined;
+  /**
+   * Schedules grouped by room: those driving the same single entity (e.g.
+   * the heating and the cooling of the living room) share a heading; any
+   * other schedule is a room of its own, named after itself.
+   */
+  private _rooms(schedules: Schedule[]): Room[] {
+    const rooms = new Map<string, Room>();
+    for (const schedule of schedules) {
+      const entities = scheduleEntities(schedule, true);
+      const entity = entities.length === 1 ? entities[0] : undefined;
+      const key = entity ?? schedule.entity_id;
+      if (!rooms.has(key)) {
+        const name = entity
+          ? (this.hass.states[entity]?.attributes?.friendly_name ?? entity)
+          : schedule.name;
+        rooms.set(key, { name, entity, schedules: [] });
+      }
+      rooms.get(key)!.schedules.push(schedule);
+    }
+    for (const room of rooms.values()) {
+      room.schedules.sort(
+        (a, b) => KIND_ORDER.indexOf(rowKind(daySegments(a))) - KIND_ORDER.indexOf(rowKind(daySegments(b))),
+      );
+    }
+    return [...rooms.values()];
+  }
 
+  private _renderRoom(room: Room, nowMinutes: number) {
+    const measured = room.entity?.startsWith("climate.")
+      ? this.hass.states[room.entity]?.attributes?.current_temperature
+      : undefined;
+    const allDisabled = room.schedules.every((s) => !this._enabled(s));
     return html`
-      <div class="row ${enabled ? "" : "disabled"}" title=${schedule.name}>
-        <div class="row-head">
-          <ha-icon class="kind ${kind}" icon=${KIND_ICONS[kind]}></ha-icon>
-          <span class="row-name">${label}</span>
-          ${kind === "cool"
-            ? html`<span class="badge cool">${localize(this.hass, "timeline.cooling")}</span>`
-            : nothing}
+      <div class="room">
+        <div class="room-head">
+          <span class="room-name ${allDisabled ? "disabled" : ""}">${room.name}</span>
           <span class="spacer"></span>
           ${typeof measured === "number"
             ? html`<span class="measured">${this._number(measured)}°</span>`
             : nothing}
-          <button
-            class="switch ${enabled ? "on" : ""}"
-            role="switch"
-            aria-checked=${enabled ? "true" : "false"}
-            aria-label=${schedule.name}
-            @click=${() => this._toggle(schedule.entity_id, enabled)}
-          ></button>
         </div>
+        ${room.schedules.map((s) => this._renderRow(s, room, nowMinutes))}
+      </div>
+    `;
+  }
+
+  private _enabled(schedule: Schedule): boolean {
+    const state = this.hass.states[schedule.entity_id];
+    return state ? state.state !== "off" : schedule.enabled;
+  }
+
+  /** One schedule: its kind, its timeline and its switch. */
+  private _renderRow(schedule: Schedule, room: Room, nowMinutes: number) {
+    const segments = daySegments(schedule);
+    const kind = rowKind(segments);
+    const enabled = this._enabled(schedule);
+
+    return html`
+      <div class="row ${enabled ? "" : "disabled"}" title=${schedule.name}>
+        <ha-icon class="kind ${kind}" icon=${KIND_ICONS[kind]}></ha-icon>
         <div class="bar">
           ${segments.map((s) => this._renderSegment(s))}
-          ${nowMinutes != null
-            ? html`<div class="now" style="left: ${(nowMinutes / DAY_MINUTES) * 100}%"></div>`
-            : nothing}
+          <div class="now" style="left: ${(nowMinutes / DAY_MINUTES) * 100}%"></div>
         </div>
+        <button
+          class="switch ${enabled ? "on" : ""}"
+          role="switch"
+          aria-checked=${enabled ? "true" : "false"}
+          aria-label=${schedule.name}
+          @click=${() => this._toggle(schedule, room, enabled)}
+        ></button>
       </div>
     `;
   }
@@ -373,8 +422,29 @@ export class HomeShiftScheduleCard extends LitElement {
   }
 
 
-  private _toggle(entityId: string, enabled: boolean) {
-    this.hass.callService("switch", enabled ? "turn_off" : "turn_on", { entity_id: entityId });
+  /**
+   * Turns a schedule on or off. Heating and cooling the same room at once
+   * makes no sense: turning one on first turns off the room's enabled
+   * schedules of the other side.
+   */
+  private async _toggle(schedule: Schedule, room: Room, enabled: boolean) {
+    if (enabled) {
+      await this.hass.callService("switch", "turn_off", { entity_id: schedule.entity_id });
+      return;
+    }
+    const side = climateSide(rowKind(daySegments(schedule)));
+    const opposite = side
+      ? room.schedules.filter((s) => {
+          const other = climateSide(rowKind(daySegments(s)));
+          return s !== schedule && other && other !== side && this._enabled(s);
+        })
+      : [];
+    if (opposite.length) {
+      await this.hass.callService("switch", "turn_off", {
+        entity_id: opposite.map((s) => s.entity_id),
+      });
+    }
+    await this.hass.callService("switch", "turn_on", { entity_id: schedule.entity_id });
   }
 
   static styles = css`
@@ -444,10 +514,34 @@ export class HomeShiftScheduleCard extends LitElement {
       border-radius: var(--ha-card-border-radius, 12px);
       background: var(--ha-card-background, var(--card-background-color));
     }
-    .row {
+    .room {
       display: flex;
       flex-direction: column;
       gap: 4px;
+    }
+    .room-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .room-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 500;
+    }
+    .room-name.disabled {
+      color: var(--secondary-text-color);
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .row .bar {
+      flex: 1;
     }
     /* A disabled schedule keeps its colors, hatched, so inactive modes stay readable. */
     .row.disabled .segment {
@@ -457,16 +551,8 @@ export class HomeShiftScheduleCard extends LitElement {
         transparent 4px 8px
       );
     }
-    .row.disabled .row-name {
-      color: var(--secondary-text-color);
-    }
-    .row-head {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-    }
     .kind {
+      flex: none;
       --mdc-icon-size: 18px;
       color: var(--secondary-text-color);
     }
@@ -477,26 +563,8 @@ export class HomeShiftScheduleCard extends LitElement {
     .kind.cool {
       color: #378add;
     }
-    .row-name {
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-weight: 500;
-    }
     .spacer {
       flex: 1;
-    }
-    .badge {
-      flex: none;
-      padding: 1px 8px;
-      border-radius: 10px;
-      font-size: 11px;
-      font-weight: 500;
-    }
-    .badge.cool {
-      background: color-mix(in srgb, #378add 25%, transparent);
-      color: #85b7eb;
     }
     .measured {
       flex: none;
@@ -564,7 +632,8 @@ export class HomeShiftScheduleCard extends LitElement {
     .axis {
       position: relative;
       height: 14px;
-      margin-top: -6px;
+      /* Under the bars only: past the kind icon (18 + 8 px) and before the switch (34 + 8 px). */
+      margin: -6px 42px 0 26px;
       font-size: 11px;
       color: var(--secondary-text-color);
     }

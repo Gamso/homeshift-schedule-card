@@ -37,7 +37,7 @@ One tab per option of the mode entity, in its order: add a mode to the entity an
 
 ### 24 h timelines
 
-Each schedule of the tab is drawn as a timeline of the day, one segment per time slot:
+Schedules are grouped by room: the room name and the temperature measured by its thermostat, then one timeline per schedule driving it (heating first, then cooling), with an icon telling heating from cooling. Each timeline has one segment per time slot:
 
 | Segment             | Colour                                   |
 | ------------------- | ---------------------------------------- |
@@ -49,7 +49,7 @@ Each schedule of the tab is drawn as a timeline of the day, one segment per time
 
 - Setpoints, presets ("Comfort", "Eco"…) and HVAC modes are shown as Home Assistant names them, in your language.
 - A vertical line marks the current time.
-- Next to the name, the room temperature measured by the thermostat, and a **Cooling** badge on cooling schedules to tell them from heating ones on the same room.
+- Heating and cooling are exclusive on a room: turning on its cooling schedule turns its heating schedule off, and the other way round.
 - The switch of each row enables or disables the schedule. A disabled schedule keeps its colours, hatched, so the tabs of inactive modes stay as readable as the active one.
 - Back-to-back time slots setting the same value are drawn as one segment.
 - A schedule that drives a thermostat shows only its thermostat actions: an "auto start" switch turned on in the same schedule does not clutter the timeline.

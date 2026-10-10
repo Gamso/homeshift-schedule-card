@@ -79,7 +79,7 @@ describe("homeshift-schedule-card, timeline layout", () => {
     const card = await renderCard(makeHass("Maison"), timeline);
     const rows = $$(card, ".row");
     expect(rows).toHaveLength(1);
-    expect(rows[0].querySelector(".row-name")!.textContent).toBe("Salon");
+    expect($(card, ".room-name")!.textContent).toBe("Salon");
     const labels = [...rows[0].querySelectorAll(".segment")].map((s) => s.textContent!.trim());
     expect(labels).toEqual(["18°", "20,5°"]);
   });
@@ -124,31 +124,65 @@ describe("homeshift-schedule-card, timeline layout", () => {
     const labels = $$(card, ".segment").map((s) => s.textContent!.trim());
     expect(labels).toEqual(["state:off", "preset_mode:comfort", "preset_mode:boost"]);
     expect($(card, ".row ha-icon")!.getAttribute("icon")).toBe("mdi:thermostat");
-    expect($(card, ".badge")).toBeNull();
   });
 
-  it("marks cooling schedules with a badge", async () => {
-    const hass = makeHass("Maison");
-    hass.callWS.mockResolvedValue([
-      {
-        ...sampleSchedules()[0],
-        timeslots: [
-          {
-            start: "12:00:00",
-            stop: "19:00:00",
-            actions: [
-              {
-                service: "climate.set_temperature",
-                entity_id: "climate.salon",
-                service_data: { temperature: 26, hvac_mode: "cool" },
-              },
-            ],
-          },
-        ],
-      },
-    ]);
-    const card = await renderCard(hass, timeline);
-    expect($(card, ".badge.cool")!.textContent).toBe("Clim");
+  describe("heating and cooling of the same room", () => {
+    const cooling = {
+      ...sampleSchedules()[0],
+      schedule_id: "c1",
+      entity_id: "switch.schedule_climatisation_maison_salon",
+      name: "Climatisation maison salon",
+      timeslots: [
+        {
+          start: "12:00:00",
+          stop: "19:00:00",
+          actions: [
+            {
+              service: "climate.set_temperature",
+              entity_id: "climate.salon",
+              service_data: { temperature: 26, hvac_mode: "cool" },
+            },
+          ],
+        },
+      ],
+    };
+
+    function roomHass(heating: string, cool: string) {
+      const hass = makeHass("Maison");
+      // Cooling listed first: the card still puts heating on top.
+      hass.callWS.mockResolvedValue([cooling, sampleSchedules()[0]]);
+      hass.states["switch.schedule_chauffage_maison_salon"].state = heating;
+      hass.states[cooling.entity_id] = { entity_id: cooling.entity_id, state: cool, attributes: {} };
+      return hass;
+    }
+
+    it("share one heading, heating first", async () => {
+      const card = await renderCard(roomHass("on", "off"), timeline);
+      expect($$(card, ".room")).toHaveLength(1);
+      const icons = $$(card, ".row ha-icon").map((i) => i.getAttribute("icon"));
+      expect(icons).toEqual(["mdi:radiator", "mdi:snowflake"]);
+    });
+
+    it("turning cooling on turns heating off first", async () => {
+      const hass = roomHass("on", "off");
+      const card = await renderCard(hass, timeline);
+      $$(card, ".row .switch")[1].click();
+      await settle(card);
+      expect(hass.callService.mock.calls).toEqual([
+        ["switch", "turn_off", { entity_id: ["switch.schedule_chauffage_maison_salon"] }],
+        ["switch", "turn_on", { entity_id: cooling.entity_id }],
+      ]);
+    });
+
+    it("turning a schedule off leaves the other side alone", async () => {
+      const hass = roomHass("on", "on");
+      const card = await renderCard(hass, timeline);
+      $$(card, ".row .switch")[0].click();
+      await settle(card);
+      expect(hass.callService.mock.calls).toEqual([
+        ["switch", "turn_off", { entity_id: "switch.schedule_chauffage_maison_salon" }],
+      ]);
+    });
   });
 
   it("shows every schedule of the tab, whatever its days", async () => {

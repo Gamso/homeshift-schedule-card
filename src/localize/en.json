@@ -7,8 +7,7 @@
     "back": "Back to timeline",
     "empty": "No schedule for this mode",
     "on": "On",
-    "off": "Off",
-    "cooling": "Cooling"
+    "off": "Off"
   },
   "scheduler": {
     "next_run": "Next run",

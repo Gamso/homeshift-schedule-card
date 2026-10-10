@@ -7,8 +7,7 @@
     "back": "Retour à la frise",
     "empty": "Aucune planification pour ce mode",
     "on": "Allumé",
-    "off": "Éteint",
-    "cooling": "Clim"
+    "off": "Éteint"
   },
   "scheduler": {
     "next_run": "Prochain lancement",
