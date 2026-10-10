@@ -6,11 +6,8 @@
     "edit": "Modifier les planifications",
     "back": "Retour à la frise",
     "empty": "Aucune planification ce jour-là",
-    "next": "{value} à {time}",
     "on": "Allumé",
     "off": "Éteint",
-    "until": "{value} jusqu'à {time}",
-    "until_then": "{value} jusqu'à {time}, puis {next}",
     "cooling": "Clim"
   },
   "scheduler": {

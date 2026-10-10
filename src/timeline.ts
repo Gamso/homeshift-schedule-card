@@ -162,47 +162,6 @@ function mergeSegments(segments: Segment[]): Segment[] {
   return merged;
 }
 
-/** What a timeline sets at a time of the day, and what comes next. */
-export interface Status {
-  /** Value in force, if a segment covers that time. */
-  current?: SlotValue;
-  /** When the current value stops, in minutes since midnight (past 1440: tomorrow). */
-  until?: number;
-  /** Next value, and when it starts (past 1440: tomorrow). */
-  next?: { value: SlotValue; at: number };
-}
-
-/**
- * Status of a day's timeline at `minutes`, assuming the next day runs the
- * same timeline: a value running past midnight continues into the morning.
- */
-export function statusAt(segments: Segment[], minutes: number): Status {
-  if (!segments.length) return {};
-  const startingAt = (t: number) => segments.find((s) => s.start === t % DAY_MINUTES);
-  const current = segments.find((s) => s.start <= minutes && minutes < s.end);
-
-  if (!current) {
-    const next = segments.find((s) => s.start > minutes);
-    return next
-      ? { next: { value: next.value, at: next.start } }
-      : { next: { value: segments[0].value, at: segments[0].start + DAY_MINUTES } };
-  }
-
-  // Follows the current value across back-to-back segments, midnight included.
-  let until = current.end;
-  for (let i = 0; i < segments.length; i++) {
-    const following = startingAt(until);
-    if (!following || !sameValue(following.value, current.value)) break;
-    const end = following.end + (until >= DAY_MINUTES ? DAY_MINUTES : 0);
-    if (end - current.start >= DAY_MINUTES) return { current: current.value };
-    until = end;
-  }
-  const following = startingAt(until);
-  return following
-    ? { current: current.value, until, next: { value: following.value, at: until } }
-    : { current: current.value, until };
-}
-
 /**
  * Entities a schedule acts on. With `shown`, only those of its timeline:
  * its thermostats when it drives some.

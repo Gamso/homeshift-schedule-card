@@ -48,7 +48,7 @@ Each schedule of the tab is drawn as a timeline of the day, one segment per time
 | Turn on / turn off  | Green / gray (also HVAC mode off)        |
 
 - Setpoints, presets ("Comfort", "Eco"…) and HVAC modes are shown as Home Assistant names them, in your language.
-- A vertical line marks the current time. Under the name, a line tells what the schedule sets now and what comes next ("Eco until 07:00, then 19.5°").
+- A vertical line marks the current time.
 - Next to the name, the room temperature measured by the thermostat, and a **Cooling** badge on cooling schedules to tell them from heating ones on the same room.
 - A day selector (Mon → Sun, today by default) shows the schedules of any day of the week: weekday-only schedules disappear on the weekend.
 - The switch of each row enables or disables the schedule. A disabled schedule keeps its colours, hatched, so the tabs of inactive modes stay as readable as the active one.

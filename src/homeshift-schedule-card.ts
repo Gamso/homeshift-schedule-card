@@ -17,7 +17,6 @@ import {
   appliesOn,
   daySegments,
   formatMinutes,
-  statusAt,
   scheduleEntities,
   schedulesFor,
   segmentColors,
@@ -322,7 +321,6 @@ export class HomeShiftScheduleCard extends LitElement {
     const enabled = this.hass.states[schedule.entity_id]
       ? this.hass.states[schedule.entity_id].state !== "off"
       : schedule.enabled;
-    const status = nowMinutes != null && enabled ? this._statusText(segments, nowMinutes) : "";
     const climate = entities.find((e) => e.startsWith("climate."));
     const measured = climate ? this.hass.states[climate]?.attributes?.current_temperature : undefined;
 
@@ -346,7 +344,6 @@ export class HomeShiftScheduleCard extends LitElement {
             @click=${() => this._toggle(schedule.entity_id, enabled)}
           ></button>
         </div>
-        ${status ? html`<div class="status">${status}</div>` : nothing}
         <div class="bar">
           ${segments.map((s) => this._renderSegment(s))}
           ${nowMinutes != null
@@ -368,23 +365,6 @@ export class HomeShiftScheduleCard extends LitElement {
     >
       ${width >= 8 ? this._label(segment.value) : nothing}
     </div>`;
-  }
-
-  /** "Eco until 07:00, then 19.5°": what the timeline sets now, and what comes next. */
-  private _statusText(segments: Segment[], nowMinutes: number): string {
-    const { current, until, next } = statusAt(segments, nowMinutes);
-    const params = {
-      value: current ? this._label(current) : "",
-      time: until != null ? formatMinutes(until) : "",
-      next: next ? this._label(next.value) : "",
-    };
-    if (!current) {
-      return next
-        ? localize(this.hass, "timeline.next", { value: params.next, time: formatMinutes(next.at) })
-        : "";
-    }
-    if (until == null) return params.value;
-    return localize(this.hass, next ? "timeline.until_then" : "timeline.until", params);
   }
 
   /** A number in the user's format (20.5 / 20,5). */
@@ -577,11 +557,6 @@ export class HomeShiftScheduleCard extends LitElement {
       border-radius: 10px;
       background: color-mix(in srgb, var(--primary-text-color) 10%, transparent);
       font-size: 12px;
-    }
-    .status {
-      margin: -2px 0 0 26px;
-      font-size: 12px;
-      color: var(--secondary-text-color);
     }
     .switch {
       position: relative;

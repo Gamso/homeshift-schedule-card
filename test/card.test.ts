@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { $, $$, FakeScheduler, makeHass, renderCard, sampleSchedules, settle } from "./helpers";
 
 const config = {
@@ -84,24 +84,16 @@ describe("homeshift-schedule-card, timeline layout", () => {
     expect(labels).toEqual(["18°", "20,5°"]);
   });
 
-  it("shows the room temperature and what the schedule sets now", async () => {
-    vi.useFakeTimers({ toFake: ["Date"] });
-    vi.setSystemTime(new Date(2026, 9, 10, 6, 0)); // Saturday 06:00
-    try {
-      const card = await renderCard(makeHass("Maison"), timeline);
-      expect($(card, ".measured")!.textContent).toBe("19,2°");
-      expect($(card, ".status")!.textContent).toBe("18° jusqu'à 07:00, puis 20,5°");
-    } finally {
-      vi.useRealTimers();
-    }
+  it("shows the room temperature", async () => {
+    const card = await renderCard(makeHass("Maison"), timeline);
+    expect($(card, ".measured")!.textContent).toBe("19,2°");
   });
 
-  it("hatches a disabled schedule and gives it no status", async () => {
+  it("hatches a disabled schedule", async () => {
     const hass = makeHass("Maison");
     hass.states["switch.schedule_chauffage_maison_salon"].state = "off";
     const card = await renderCard(hass, timeline);
     expect($(card, ".row")!.classList.contains("disabled")).toBe(true);
-    expect($(card, ".status")).toBeNull();
   });
 
   it("names presets and modes as Home Assistant does", async () => {
