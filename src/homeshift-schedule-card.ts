@@ -24,7 +24,8 @@ import {
 const KIND_ICONS: Record<string, string> = {
   heat: "mdi:radiator",
   cool: "mdi:snowflake",
-  preset: "mdi:thermostat",
+  // A preset alone does not say heating or cooling: heating, as for the exclusion.
+  preset: "mdi:radiator",
   on: "mdi:toggle-switch-outline",
   off: "mdi:toggle-switch-off-outline",
   other: "mdi:calendar-clock",

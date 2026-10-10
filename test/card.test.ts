@@ -123,7 +123,7 @@ describe("homeshift-schedule-card, timeline layout", () => {
     const card = await renderCard(hass, timeline);
     const labels = $$(card, ".segment").map((s) => s.textContent!.trim());
     expect(labels).toEqual(["state:off", "preset_mode:comfort", "preset_mode:boost"]);
-    expect($(card, ".row ha-icon")!.getAttribute("icon")).toBe("mdi:thermostat");
+    expect($(card, ".row ha-icon")!.getAttribute("icon")).toBe("mdi:radiator");
   });
 
   describe("heating and cooling of the same room", () => {
