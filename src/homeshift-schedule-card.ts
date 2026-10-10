@@ -232,7 +232,7 @@ export class HomeShiftScheduleCard extends LitElement {
     const accent = this._config.accent_color ?? DEFAULT_ACCENT;
 
     return html`
-      <div class="root" style="--hsc-accent: ${accent}">
+      <ha-card class="root" style="--hsc-accent: ${accent}">
         <div
           class="tabs"
           role="tablist"
@@ -261,7 +261,7 @@ export class HomeShiftScheduleCard extends LitElement {
           })}
         </div>
         <div class="content" role="tabpanel">${this._renderContent(selected)}</div>
-      </div>
+      </ha-card>
     `;
   }
 
@@ -451,49 +451,45 @@ export class HomeShiftScheduleCard extends LitElement {
     .root {
       display: flex;
       flex-direction: column;
+      gap: 12px;
+      padding: 12px;
     }
+    /* Segmented control: one button per mode, the shown one filled. */
     .tabs {
       display: flex;
-      border-bottom: 1px solid var(--divider-color);
+      gap: 2px;
+      padding: 3px;
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--primary-text-color) 7%, transparent);
       overflow-x: auto;
       scrollbar-width: none;
     }
     .tab {
       flex: 1 0 auto;
-      position: relative;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
-      padding: 14px 16px;
+      padding: 6px 10px;
       border: none;
+      border-radius: 8px;
       background: none;
       cursor: pointer;
       font: inherit;
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 500;
       color: var(--secondary-text-color);
-      border-radius: 4px 4px 0 0;
     }
-    .tab:hover {
-      background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
+    .tab:hover:not(.selected) {
+      background: color-mix(in srgb, var(--primary-text-color) 6%, transparent);
     }
     .tab:focus-visible {
       outline: 2px solid var(--hsc-accent);
-      outline-offset: -2px;
+      outline-offset: 1px;
     }
     .tab.selected {
-      color: var(--hsc-accent);
-    }
-    .tab.selected::after {
-      content: "";
-      position: absolute;
-      left: 16px;
-      right: 16px;
-      bottom: 0;
-      height: 3px;
-      border-radius: 3px 3px 0 0;
       background: var(--hsc-accent);
+      color: #fff;
     }
     .active-dot {
       width: 8px;
@@ -502,17 +498,16 @@ export class HomeShiftScheduleCard extends LitElement {
       background: var(--state-active-color, var(--success-color, #43a047));
       flex: none;
     }
+    /* The scheduler card (list layout, editing) blends into this card's frame. */
     .content {
-      margin-top: 8px;
+      --ha-card-border-width: 0;
+      --ha-card-box-shadow: none;
+      --ha-card-background: transparent;
     }
     .timeline {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      padding: 12px;
-      border: 1px solid var(--divider-color);
-      border-radius: var(--ha-card-border-radius, 12px);
-      background: var(--ha-card-background, var(--card-background-color));
     }
     .room {
       display: flex;
