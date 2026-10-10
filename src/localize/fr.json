@@ -8,11 +8,10 @@
     "empty": "Aucune planification ce jour-là",
     "next": "{value} à {time}",
     "on": "Allumé",
-    "off": "Éteint"
-  },
-  "mode_bar": {
-    "current": "Mode actuel : {mode}",
-    "activate": "Activer {mode}"
+    "off": "Éteint",
+    "until": "{value} jusqu'à {time}",
+    "until_then": "{value} jusqu'à {time}, puis {next}",
+    "cooling": "Clim"
   },
   "scheduler": {
     "next_run": "Prochain lancement",

@@ -8,11 +8,10 @@
     "empty": "No schedule on that day",
     "next": "{value} at {time}",
     "on": "On",
-    "off": "Off"
-  },
-  "mode_bar": {
-    "current": "Current mode: {mode}",
-    "activate": "Activate {mode}"
+    "off": "Off",
+    "until": "{value} until {time}",
+    "until_then": "{value} until {time}, then {next}",
+    "cooling": "Cooling"
   },
   "scheduler": {
     "next_run": "Next run",

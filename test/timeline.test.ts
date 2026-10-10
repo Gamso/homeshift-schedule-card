@@ -7,6 +7,7 @@ import {
   segmentColors,
   schedulesFor,
   slotValue,
+  statusAt,
 } from "../src/timeline";
 import { sampleSchedules } from "./helpers";
 
@@ -51,10 +52,7 @@ describe("daySegments", () => {
 
   it("holds a lone action all day", () => {
     const s = schedule([{ start: "08:00:00", stop: null, actions: [off] }]);
-    expect(daySegments(s).map(span)).toEqual([
-      [0, 480, "off"],
-      [480, 1440, "off"],
-    ]);
+    expect(daySegments(s).map(span)).toEqual([[0, 1440, "off"]]);
   });
 });
 
@@ -136,5 +134,54 @@ describe("schedules driving a thermostat and other entities", () => {
     expect(daySegments(clim).map(span)).toEqual([[660, 900, "26°"]]);
     expect(scheduleEntities(clim, true)).toEqual(["climate.salon"]);
     expect(scheduleEntities(clim)).toEqual(["switch.ac", "climate.salon"]);
+  });
+});
+
+describe("merged segments", () => {
+  it("joins back-to-back time slots setting the same value", () => {
+    const eco = (start: string, stop: string) => ({
+      start,
+      stop,
+      actions: [
+        { service: "climate.set_preset_mode", entity_id: "climate.c", service_data: { preset_mode: "eco" } },
+      ],
+    });
+    const s = schedule([eco("00:00:00", "07:00:00"), eco("07:00:00", "13:00:00"), eco("13:00:00", "00:00:00")]);
+    expect(daySegments(s).map(span)).toEqual([[0, 1440, "eco"]]);
+  });
+});
+
+describe("statusAt", () => {
+  const segments = daySegments(sampleSchedules()[0]); // 18° 00:00-07:00, 20.5° 07:00-24:00
+
+  it("gives the current value, until when, and what follows", () => {
+    expect(statusAt(segments, 360)).toMatchObject({
+      current: { label: "18°" },
+      until: 420,
+      next: { value: { label: "20.5°" }, at: 420 },
+    });
+  });
+
+  it("follows a value past midnight into the next morning", () => {
+    const night = schedule([
+      { start: "22:00:00", stop: "07:00:00", actions: [on] },
+      { start: "07:00:00", stop: "22:00:00", actions: [off] },
+    ]);
+    expect(statusAt(daySegments(night), 23 * 60)).toMatchObject({
+      current: { label: "on" },
+      until: 1440 + 420,
+      next: { value: { label: "off" }, at: 1440 + 420 },
+    });
+  });
+
+  it("has no end for a value held all day", () => {
+    const allDay = schedule([{ start: "08:00:00", stop: null, actions: [off] }]);
+    expect(statusAt(daySegments(allDay), 600)).toEqual({ current: expect.objectContaining({ label: "off" }) });
+  });
+
+  it("gives the next value in a gap", () => {
+    const gap = schedule([{ start: "12:00:00", stop: "19:00:00", actions: [on] }]);
+    expect(statusAt(daySegments(gap), 600)).toMatchObject({ next: { at: 720 } });
+    expect(statusAt(daySegments(gap), 1200)).toMatchObject({ next: { at: 1440 + 720 } });
   });
 });

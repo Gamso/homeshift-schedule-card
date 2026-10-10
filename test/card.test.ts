@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { $, $$, FakeScheduler, makeHass, renderCard, settle } from "./helpers";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { $, $$, FakeScheduler, makeHass, renderCard, sampleSchedules, settle } from "./helpers";
 
 const config = {
   mode_entity: "select.homeshift_day_mode",
@@ -56,27 +56,6 @@ describe("homeshift-schedule-card, list layout", () => {
     expect(selectedTab(card)).toBe("Travail");
   });
 
-  it("offers to activate the viewed mode", async () => {
-    const hass = makeHass("Maison");
-    const card = await renderCard(hass, config);
-    expect($(card, ".mode-bar")).toBeNull();
-    $$(card, ".tab")[1].click();
-    await settle(card);
-    expect($(card, ".mode-bar")!.textContent).toContain("Mode actuel : Maison");
-    ($(card, ".activate") as HTMLButtonElement).click();
-    expect(hass.callService).toHaveBeenCalledWith("select", "select_option", {
-      entity_id: "select.homeshift_day_mode",
-      option: "Télétravail",
-    });
-  });
-
-  it("hides the activation bar when mode changes are not allowed", async () => {
-    const card = await renderCard(makeHass("Maison"), { ...config, allow_mode_change: false });
-    $$(card, ".tab")[1].click();
-    await settle(card);
-    expect($(card, ".mode-bar")).toBeNull();
-  });
-
   it("moves between tabs with the arrow keys", async () => {
     const card = await renderCard(makeHass("Maison"), config);
     $(card, ".tabs")!.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft" }));
@@ -103,6 +82,26 @@ describe("homeshift-schedule-card, timeline layout", () => {
     expect(rows[0].querySelector(".row-name")!.textContent).toBe("Salon");
     const labels = [...rows[0].querySelectorAll(".segment")].map((s) => s.textContent!.trim());
     expect(labels).toEqual(["18°", "20,5°"]);
+  });
+
+  it("shows the room temperature and what the schedule sets now", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 10, 6, 0)); // Saturday 06:00
+    try {
+      const card = await renderCard(makeHass("Maison"), timeline);
+      expect($(card, ".measured")!.textContent).toBe("19,2°");
+      expect($(card, ".status")!.textContent).toBe("18° jusqu'à 07:00, puis 20,5°");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("hatches a disabled schedule and gives it no status", async () => {
+    const hass = makeHass("Maison");
+    hass.states["switch.schedule_chauffage_maison_salon"].state = "off";
+    const card = await renderCard(hass, timeline);
+    expect($(card, ".row")!.classList.contains("disabled")).toBe(true);
+    expect($(card, ".status")).toBeNull();
   });
 
   it("names presets and modes as Home Assistant does", async () => {
@@ -133,6 +132,31 @@ describe("homeshift-schedule-card, timeline layout", () => {
     const labels = $$(card, ".segment").map((s) => s.textContent!.trim());
     expect(labels).toEqual(["state:off", "preset_mode:comfort", "preset_mode:boost"]);
     expect($(card, ".row ha-icon")!.getAttribute("icon")).toBe("mdi:thermostat");
+    expect($(card, ".badge")).toBeNull();
+  });
+
+  it("marks cooling schedules with a badge", async () => {
+    const hass = makeHass("Maison");
+    hass.callWS.mockResolvedValue([
+      {
+        ...sampleSchedules()[0],
+        timeslots: [
+          {
+            start: "12:00:00",
+            stop: "19:00:00",
+            actions: [
+              {
+                service: "climate.set_temperature",
+                entity_id: "climate.salon",
+                service_data: { temperature: 26, hvac_mode: "cool" },
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+    const card = await renderCard(hass, timeline);
+    expect($(card, ".badge.cool")!.textContent).toBe("Clim");
   });
 
   it("only shows the schedules running on the selected day", async () => {

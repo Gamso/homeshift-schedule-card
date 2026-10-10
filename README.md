@@ -35,8 +35,6 @@ extra_entities:
 
 One tab per option of the mode entity, in its order: add a mode to the entity and its tab appears. A dot marks the active mode, and the card switches to its tab whenever the mode changes. Left and right arrow keys move between tabs.
 
-On a tab other than the active mode, an **Activate {mode}** button sets the mode entity to it.
-
 ### 24 h timelines
 
 Each schedule of the tab is drawn as a timeline of the day, one segment per time slot:
@@ -50,9 +48,11 @@ Each schedule of the tab is drawn as a timeline of the day, one segment per time
 | Turn on / turn off  | Green / gray (also HVAC mode off)        |
 
 - Setpoints, presets ("Comfort", "Eco"…) and HVAC modes are shown as Home Assistant names them, in your language.
-- A vertical line marks the current time, and the next action is shown next to the name ("17° at 22:00").
+- A vertical line marks the current time. Under the name, a line tells what the schedule sets now and what comes next ("Eco until 07:00, then 19.5°").
+- Next to the name, the room temperature measured by the thermostat, and a **Cooling** badge on cooling schedules to tell them from heating ones on the same room.
 - A day selector (Mon → Sun, today by default) shows the schedules of any day of the week: weekday-only schedules disappear on the weekend.
-- The switch of each row enables or disables the schedule; a disabled schedule is dimmed.
+- The switch of each row enables or disables the schedule. A disabled schedule keeps its colours, hatched, so the tabs of inactive modes stay as readable as the active one.
+- Back-to-back time slots setting the same value are drawn as one segment.
 - A schedule that drives a thermostat shows only its thermostat actions: an "auto start" switch turned on in the same schedule does not clutter the timeline.
 
 The timelines are read from the Scheduler integration and refresh as soon as a schedule is edited, toggled or run.
@@ -102,7 +102,6 @@ Tag each schedule with the name of its mode (in the scheduler-card editor, **Opt
 | `extra_entities`    | —                           | Entities offered in one tab only, by mode name.                                                       |
 | `layout`            | `timeline`                  | `timeline`: 24 h timelines; `list`: the scheduler-card list straight away.                            |
 | `follow_mode`       | `true`                      | Switch to the active mode's tab when the mode changes.                                                |
-| `allow_mode_change` | `true`                      | Show the **Activate {mode}** button.                                                                  |
 | `accent_color`      | `#44739E`                   | Colour of the tabs, day selector and button.                                                          |
 | `name_color`        | `orange`                    | Colour of the schedule names in the scheduler-card list.                                              |
 | `scheduler`         | see below                   | scheduler-card options merged over the defaults (`time_step`, `sort_by`, `display_options`…).         |

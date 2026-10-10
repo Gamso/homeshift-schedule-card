@@ -45,7 +45,10 @@ export function makeHass(mode = "Maison", language = "fr") {
     "select.homeshift_day_mode": entity("select.homeshift_day_mode", mode, {
       options: ["Maison", "Télétravail", "Travail", "Absence"],
     }),
-    "climate.salon": entity("climate.salon", "heat", { friendly_name: "Salon" }),
+    "climate.salon": entity("climate.salon", "heat", {
+      friendly_name: "Salon",
+      current_temperature: 19.2,
+    }),
     "switch.schedule_chauffage_maison_salon": entity(
       "switch.schedule_chauffage_maison_salon",
       "on",

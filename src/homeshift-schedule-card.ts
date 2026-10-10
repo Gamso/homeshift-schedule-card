@@ -17,6 +17,7 @@ import {
   appliesOn,
   daySegments,
   formatMinutes,
+  statusAt,
   scheduleEntities,
   schedulesFor,
   segmentColors,
@@ -205,12 +206,6 @@ export class HomeShiftScheduleCard extends LitElement {
     );
   }
 
-  private _activate(name: string) {
-    const entityId = this._config.mode_entity!;
-    const domain = entityId.split(".")[0];
-    this.hass.callService(domain, "select_option", { entity_id: entityId, option: name });
-  }
-
   protected render() {
     if (!this._config || !this.hass) return nothing;
     const modes = this._modes;
@@ -252,7 +247,6 @@ export class HomeShiftScheduleCard extends LitElement {
             `;
           })}
         </div>
-        ${this._renderModeBar(selected, active, modes)}
         <div class="content" role="tabpanel">${this._renderContent(selected)}</div>
       </div>
     `;
@@ -328,21 +322,21 @@ export class HomeShiftScheduleCard extends LitElement {
     const enabled = this.hass.states[schedule.entity_id]
       ? this.hass.states[schedule.entity_id].state !== "off"
       : schedule.enabled;
-    const next =
-      nowMinutes != null && enabled ? segments.find((s) => s.start > nowMinutes) : undefined;
+    const status = nowMinutes != null && enabled ? this._statusText(segments, nowMinutes) : "";
+    const climate = entities.find((e) => e.startsWith("climate."));
+    const measured = climate ? this.hass.states[climate]?.attributes?.current_temperature : undefined;
 
     return html`
       <div class="row ${enabled ? "" : "disabled"}" title=${schedule.name}>
         <div class="row-head">
           <ha-icon class="kind ${kind}" icon=${KIND_ICONS[kind]}></ha-icon>
           <span class="row-name">${label}</span>
-          ${next
-            ? html`<span class="row-next">
-                ${localize(this.hass, "timeline.next", {
-                  value: this._label(next.value),
-                  time: formatMinutes(next.start),
-                })}
-              </span>`
+          ${kind === "cool"
+            ? html`<span class="badge cool">${localize(this.hass, "timeline.cooling")}</span>`
+            : nothing}
+          <span class="spacer"></span>
+          ${typeof measured === "number"
+            ? html`<span class="measured">${this._number(measured)}°</span>`
             : nothing}
           <button
             class="switch ${enabled ? "on" : ""}"
@@ -352,6 +346,7 @@ export class HomeShiftScheduleCard extends LitElement {
             @click=${() => this._toggle(schedule.entity_id, enabled)}
           ></button>
         </div>
+        ${status ? html`<div class="status">${status}</div>` : nothing}
         <div class="bar">
           ${segments.map((s) => this._renderSegment(s))}
           ${nowMinutes != null
@@ -368,20 +363,40 @@ export class HomeShiftScheduleCard extends LitElement {
     const range = `${formatMinutes(segment.start)} – ${formatMinutes(segment.end)}`;
     return html`<div
       class="segment"
-      style="left: ${(segment.start / DAY_MINUTES) * 100}%; width: ${width}%; background: ${background}; color: ${color}"
+      style="left: ${(segment.start / DAY_MINUTES) * 100}%; width: ${width}%; background-color: ${background}; color: ${color}"
       title="${range} · ${this._label(segment.value)}"
     >
       ${width >= 8 ? this._label(segment.value) : nothing}
     </div>`;
   }
 
+  /** "Eco until 07:00, then 19.5°": what the timeline sets now, and what comes next. */
+  private _statusText(segments: Segment[], nowMinutes: number): string {
+    const { current, until, next } = statusAt(segments, nowMinutes);
+    const params = {
+      value: current ? this._label(current) : "",
+      time: until != null ? formatMinutes(until) : "",
+      next: next ? this._label(next.value) : "",
+    };
+    if (!current) {
+      return next
+        ? localize(this.hass, "timeline.next", { value: params.next, time: formatMinutes(next.at) })
+        : "";
+    }
+    if (until == null) return params.value;
+    return localize(this.hass, next ? "timeline.until_then" : "timeline.until", params);
+  }
+
+  /** A number in the user's format (20.5 / 20,5). */
+  private _number(value: number): string {
+    const language = this.hass.locale?.language ?? this.hass.language ?? "en";
+    return value.toLocaleString(language, { maximumFractionDigits: 1 });
+  }
+
   /** Text of a value, with the temperature in the user's number format (20.5° / 20,5°). */
   private _label(value: SlotValue): string {
     const stateObj = value.entity ? this.hass.states[value.entity] : undefined;
-    if (value.temperature != null) {
-      const language = this.hass.locale?.language ?? this.hass.language ?? "en";
-      return `${value.temperature.toLocaleString(language)}°`;
-    }
+    if (value.temperature != null) return `${this._number(value.temperature)}°`;
     // Presets and HVAC modes as Home Assistant names them ("Confort", "Éteint"...).
     if (value.preset != null) {
       return stateObj && this.hass.formatEntityAttributeValue
@@ -408,27 +423,6 @@ export class HomeShiftScheduleCard extends LitElement {
 
   private _toggle(entityId: string, enabled: boolean) {
     this.hass.callService("switch", enabled ? "turn_off" : "turn_on", { entity_id: entityId });
-  }
-
-  /** Offers to switch the mode entity to the viewed tab's mode. */
-  private _renderModeBar(selected: ResolvedMode, active: string | undefined, modes: ResolvedMode[]) {
-    if (
-      this._config.allow_mode_change === false ||
-      !this._config.mode_entity ||
-      !active ||
-      selected.name === active
-    ) {
-      return nothing;
-    }
-    const activeLabel = modes.find((m) => m.name === active)?.label ?? active;
-    return html`
-      <div class="mode-bar">
-        <span>${localize(this.hass, "mode_bar.current", { mode: activeLabel })}</span>
-        <button class="activate" @click=${() => this._activate(selected.name)}>
-          ${localize(this.hass, "mode_bar.activate", { mode: selected.label })}
-        </button>
-      </div>
-    `;
   }
 
   static styles = css`
@@ -486,29 +480,6 @@ export class HomeShiftScheduleCard extends LitElement {
       background: var(--state-active-color, var(--success-color, #43a047));
       flex: none;
     }
-    .mode-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 8px 0 0;
-      padding: 6px 6px 6px 12px;
-      border-radius: 8px;
-      background: color-mix(in srgb, var(--hsc-accent) 15%, transparent);
-      color: var(--secondary-text-color);
-      font-size: 14px;
-    }
-    .activate {
-      border: none;
-      border-radius: 6px;
-      padding: 6px 12px;
-      background: var(--hsc-accent);
-      color: #fff;
-      font: inherit;
-      font-weight: 500;
-      cursor: pointer;
-    }
     .content {
       margin-top: 8px;
     }
@@ -551,8 +522,13 @@ export class HomeShiftScheduleCard extends LitElement {
       flex-direction: column;
       gap: 4px;
     }
-    .row.disabled .bar {
-      opacity: 0.35;
+    /* A disabled schedule keeps its colors, hatched, so inactive modes stay readable. */
+    .row.disabled .segment {
+      background-image: repeating-linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.3) 0 4px,
+        transparent 4px 8px
+      );
     }
     .row.disabled .row-name {
       color: var(--secondary-text-color);
@@ -575,17 +551,37 @@ export class HomeShiftScheduleCard extends LitElement {
       color: #378add;
     }
     .row-name {
-      flex: 1;
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       font-weight: 500;
     }
-    .row-next {
+    .spacer {
+      flex: 1;
+    }
+    .badge {
+      flex: none;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .badge.cool {
+      background: color-mix(in srgb, #378add 25%, transparent);
+      color: #85b7eb;
+    }
+    .measured {
+      flex: none;
+      padding: 1px 8px;
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--primary-text-color) 10%, transparent);
+      font-size: 12px;
+    }
+    .status {
+      margin: -2px 0 0 26px;
       font-size: 12px;
       color: var(--secondary-text-color);
-      white-space: nowrap;
     }
     .switch {
       position: relative;

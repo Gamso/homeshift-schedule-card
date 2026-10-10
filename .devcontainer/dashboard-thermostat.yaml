@@ -47,11 +47,10 @@ views:
           - type: heading
             heading: Variante
             icon: mdi:flask-outline
-          # Onglets explicites (ordre, libellé), sans suivi du mode ni bouton d'activation
+          # Onglets explicites (ordre, libellé), sans suivi du mode
           - type: custom:homeshift-schedule-card
             mode_entity: select.homeshift_day_mode
             follow_mode: false
-            allow_mode_change: false
             accent_color: "#E07A1F"
             name_color: "#4FC3F7"
             modes:

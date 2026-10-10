@@ -22,8 +22,6 @@ export interface HomeShiftScheduleCardConfig {
   extra_entities?: Record<string, string[]>;
   /** Jump to the active mode's tab whenever the mode changes (default true). */
   follow_mode?: boolean;
-  /** Offer to activate the viewed mode when it is not the active one (default true). */
-  allow_mode_change?: boolean;
   /** Tab and indicator color. */
   accent_color?: string;
   /** Color of the schedule names. */
