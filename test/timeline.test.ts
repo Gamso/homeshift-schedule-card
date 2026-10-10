@@ -4,6 +4,7 @@ import {
   appliesOn,
   daySegments,
   scheduleEntities,
+  segmentColors,
   schedulesFor,
   slotValue,
 } from "../src/timeline";
@@ -31,8 +32,8 @@ describe("daySegments", () => {
       { start: "22:00:00", stop: "06:00:00", actions: [on] },
     ]);
     expect(daySegments(s).map(span)).toEqual([
-      [0, 360, "On"],
-      [1320, 1440, "On"],
+      [0, 360, "on"],
+      [1320, 1440, "on"],
     ]);
   });
 
@@ -42,17 +43,17 @@ describe("daySegments", () => {
       { start: "22:30:00", stop: null, actions: [off] },
     ]);
     expect(daySegments(s).map(span)).toEqual([
-      [0, 1020, "Off"],
-      [1020, 1350, "On"],
-      [1350, 1440, "Off"],
+      [0, 1020, "off"],
+      [1020, 1350, "on"],
+      [1350, 1440, "off"],
     ]);
   });
 
   it("holds a lone action all day", () => {
     const s = schedule([{ start: "08:00:00", stop: null, actions: [off] }]);
     expect(daySegments(s).map(span)).toEqual([
-      [0, 480, "Off"],
-      [480, 1440, "Off"],
+      [0, 480, "off"],
+      [480, 1440, "off"],
     ]);
   });
 });
@@ -72,7 +73,26 @@ describe("slotValue", () => {
     expect(slotValue(slot("climate.set_hvac_mode", { hvac_mode: "off" }))).toMatchObject({
       kind: "off",
     });
-    expect(slotValue(slot("switch.turn_on"))).toMatchObject({ kind: "on", label: "On" });
+    expect(slotValue(slot("switch.turn_on"))).toMatchObject({ kind: "on", label: "on" });
+  });
+
+  it("reads presets", () => {
+    expect(slotValue(slot("climate.set_preset_mode", { preset_mode: "comfort" }))).toMatchObject({
+      kind: "preset",
+      preset: "comfort",
+    });
+  });
+});
+
+describe("segmentColors", () => {
+  const preset = (name: string) => segmentColors({ kind: "preset", preset: name, label: name });
+
+  it("colors presets from cold to hot", () => {
+    expect(preset("frost").background).toBe("#85B7EB");
+    expect(preset("eco").background).toBe("#FAC775");
+    expect(preset("comfort").background).toBe("#EF9F27");
+    expect(preset("boost").background).toBe("#A32D2D");
+    expect(preset("my_custom").background).toBe("#B4B2A9");
   });
 });
 

@@ -6,7 +6,9 @@
     "edit": "Modifier les planifications",
     "back": "Retour à la frise",
     "empty": "Aucune planification ce jour-là",
-    "next": "{value} à {time}"
+    "next": "{value} à {time}",
+    "on": "Allumé",
+    "off": "Éteint"
   },
   "mode_bar": {
     "current": "Mode actuel : {mode}",

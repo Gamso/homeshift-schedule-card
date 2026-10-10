@@ -6,7 +6,9 @@
     "edit": "Edit schedules",
     "back": "Back to timeline",
     "empty": "No schedule on that day",
-    "next": "{value} at {time}"
+    "next": "{value} at {time}",
+    "on": "On",
+    "off": "Off"
   },
   "mode_bar": {
     "current": "Current mode: {mode}",

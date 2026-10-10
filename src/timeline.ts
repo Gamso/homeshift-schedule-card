@@ -15,13 +15,22 @@ export interface Timeslot {
   actions: { service: string; entity_id?: string; service_data?: Record<string, any> }[];
 }
 
-export type ValueKind = "heat" | "cool" | "off" | "on" | "other";
+export type ValueKind = "heat" | "cool" | "preset" | "off" | "on" | "other";
 
 /** What a timeslot sets its entity to. */
 export interface SlotValue {
   kind: ValueKind;
+  /** Entity of the action the value comes from. */
+  entity?: string;
   temperature?: number;
-  /** Short text shown in the segment ("20°", "On"...); the card localizes temperatures. */
+  /** Preset set by `climate.set_preset_mode` ("comfort", "eco"...). */
+  preset?: string;
+  /** HVAC mode set without a temperature ("off", "heat"...). */
+  hvacMode?: string;
+  /**
+   * Raw text of the value ("20°", "comfort", "off"...); the card shows
+   * temperatures, presets and modes in the user's language instead.
+   */
   label: string;
 }
 
@@ -70,19 +79,25 @@ export function slotValue(slot: Timeslot): SlotValue {
   if (!action) return { kind: "other", label: "" };
   const [, service] = action.service.split(".");
   const data = action.service_data ?? {};
+  const entity = action.entity_id;
   const mode = data.hvac_mode;
-  if (mode === "off" || service === "turn_off") return { kind: "off", label: "Off" };
+  if (mode === "off") return { kind: "off", entity, hvacMode: mode, label: mode };
+  if (service === "turn_off") return { kind: "off", entity, label: "off" };
   if (typeof data.temperature === "number") {
     return {
       kind: mode === "cool" ? "cool" : "heat",
+      entity,
       temperature: data.temperature,
       label: `${data.temperature}°`,
     };
   }
-  if (mode === "cool") return { kind: "cool", label: "Clim" };
-  if (mode) return { kind: "heat", label: mode };
-  if (service === "turn_on") return { kind: "on", label: "On" };
-  return { kind: "other", label: service ?? action.service };
+  if (data.preset_mode != null) {
+    const preset = String(data.preset_mode);
+    return { kind: "preset", entity, preset, label: preset };
+  }
+  if (mode) return { kind: mode === "cool" ? "cool" : "heat", entity, hvacMode: mode, label: mode };
+  if (service === "turn_on") return { kind: "on", entity, label: "on" };
+  return { kind: "other", entity, label: service ?? action.service };
 }
 
 /**
@@ -154,6 +169,8 @@ export function segmentColors(value: SlotValue): { background: string; color: st
       return { background: "#1D9E75", color: "#fff" };
     case "other":
       return { background: "#888780", color: "#fff" };
+    case "preset":
+      return presetColors(value.preset ?? "");
   }
   const t = value.temperature ?? 19;
   if (t < 15) return { background: "#85B7EB", color: "#042C53" };
@@ -161,4 +178,18 @@ export function segmentColors(value: SlotValue): { background: string; color: st
   if (t < 19.5) return { background: "#EF9F27", color: "#412402" };
   if (t < 21) return { background: "#D85A30", color: "#fff" };
   return { background: "#A32D2D", color: "#fff" };
+}
+
+/**
+ * Preset colors on the same scale as the setpoints: frost and away are
+ * cold, eco mild, comfort warm, boost hot (Versatile Thermostat and the
+ * presets Home Assistant defines).
+ */
+function presetColors(preset: string): { background: string; color: string } {
+  const p = preset.toLowerCase();
+  if (/frost|hors|away|absen|vacation/.test(p)) return { background: "#85B7EB", color: "#042C53" };
+  if (/eco|sleep|night|nuit/.test(p)) return { background: "#FAC775", color: "#412402" };
+  if (/boost/.test(p)) return { background: "#A32D2D", color: "#fff" };
+  if (/comfort|confort|home|activity/.test(p)) return { background: "#EF9F27", color: "#412402" };
+  return { background: "#B4B2A9", color: "#2C2C2A" };
 }

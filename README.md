@@ -46,8 +46,10 @@ Each schedule of the tab is drawn as a timeline of the day, one segment per time
 | Heating setpoint    | Light yellow to red, warmer when higher  |
 | Below 15° (frost)   | Light blue                               |
 | Cooling setpoint    | Blue                                     |
-| Turn on / turn off  | Green / gray                             |
+| Preset              | Frost, away: light blue · eco: light yellow · comfort: orange · boost: red |
+| Turn on / turn off  | Green / gray (also HVAC mode off)        |
 
+- Setpoints, presets ("Comfort", "Eco"…) and HVAC modes are shown as Home Assistant names them, in your language.
 - A vertical line marks the current time, and the next action is shown next to the name ("17° at 22:00").
 - A day selector (Mon → Sun, today by default) shows the schedules of any day of the week: weekday-only schedules disappear on the weekend.
 - The switch of each row enables or disables the schedule; a disabled schedule is dimmed.

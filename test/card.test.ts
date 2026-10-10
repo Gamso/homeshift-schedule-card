@@ -105,6 +105,36 @@ describe("homeshift-schedule-card, timeline layout", () => {
     expect(labels).toEqual(["18°", "20,5°"]);
   });
 
+  it("names presets and modes as Home Assistant does", async () => {
+    const hass: any = makeHass("Maison");
+    hass.formatEntityAttributeValue = (_s: any, attr: string, v: string) => `${attr}:${v}`;
+    hass.formatEntityState = (_s: any, v: string) => `state:${v}`;
+    const action = (service: string, service_data: object) => ({
+      service,
+      entity_id: "climate.salon",
+      service_data,
+    });
+    hass.callWS.mockResolvedValue([
+      {
+        schedule_id: "p1",
+        entity_id: "switch.schedule_climatisation_maison_salon",
+        name: "Climatisation maison salon",
+        enabled: true,
+        weekdays: ["daily"],
+        tags: ["Maison"],
+        timeslots: [
+          { start: "00:00:00", stop: "13:00:00", actions: [action("climate.set_hvac_mode", { hvac_mode: "off" })] },
+          { start: "13:00:00", stop: "21:30:00", actions: [action("climate.set_preset_mode", { preset_mode: "comfort" })] },
+          { start: "21:30:00", stop: "00:00:00", actions: [action("climate.set_preset_mode", { preset_mode: "boost" })] },
+        ],
+      },
+    ]);
+    const card = await renderCard(hass, timeline);
+    const labels = $$(card, ".segment").map((s) => s.textContent!.trim());
+    expect(labels).toEqual(["state:off", "preset_mode:comfort", "preset_mode:boost"]);
+    expect($(card, ".row ha-icon")!.getAttribute("icon")).toBe("mdi:thermostat");
+  });
+
   it("only shows the schedules running on the selected day", async () => {
     const card = await renderCard(makeHass("Travail"), timeline);
     $$(card, ".day")[0].click(); // Monday

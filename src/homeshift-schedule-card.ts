@@ -27,10 +27,22 @@ const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
 const KIND_ICONS: Record<string, string> = {
   heat: "mdi:radiator",
   cool: "mdi:snowflake",
+  preset: "mdi:thermostat",
   on: "mdi:toggle-switch-outline",
   off: "mdi:toggle-switch-off-outline",
   other: "mdi:calendar-clock",
 };
+
+/**
+ * Kind of a timeline, for its icon: cooling wins, then heating, then
+ * presets; turning off alone does not tell what the schedule is for.
+ */
+function rowKind(segments: Segment[]): string {
+  const kinds = new Set(segments.map((s) => s.value.kind));
+  return (
+    ["cool", "heat", "preset", "on", "off"].find((kind) => kinds.has(kind as any)) ?? "other"
+  );
+}
 
 export class HomeShiftScheduleCard extends LitElement {
   @property({ attribute: false }) public hass!: any;
@@ -312,7 +324,7 @@ export class HomeShiftScheduleCard extends LitElement {
       entities.length === 1
         ? (this.hass.states[entities[0]]?.attributes?.friendly_name ?? entities[0])
         : schedule.name;
-    const kind = segments[0]?.value.kind ?? "other";
+    const kind = rowKind(segments);
     const enabled = this.hass.states[schedule.entity_id]
       ? this.hass.states[schedule.entity_id].state !== "off"
       : schedule.enabled;
@@ -365,9 +377,26 @@ export class HomeShiftScheduleCard extends LitElement {
 
   /** Text of a value, with the temperature in the user's number format (20.5° / 20,5°). */
   private _label(value: SlotValue): string {
-    if (value.temperature == null) return value.label;
-    const language = this.hass.locale?.language ?? this.hass.language ?? "en";
-    return `${value.temperature.toLocaleString(language)}°`;
+    const stateObj = value.entity ? this.hass.states[value.entity] : undefined;
+    if (value.temperature != null) {
+      const language = this.hass.locale?.language ?? this.hass.language ?? "en";
+      return `${value.temperature.toLocaleString(language)}°`;
+    }
+    // Presets and HVAC modes as Home Assistant names them ("Confort", "Éteint"...).
+    if (value.preset != null) {
+      return stateObj && this.hass.formatEntityAttributeValue
+        ? this.hass.formatEntityAttributeValue(stateObj, "preset_mode", value.preset)
+        : value.preset;
+    }
+    if (value.hvacMode != null) {
+      return stateObj && this.hass.formatEntityState
+        ? this.hass.formatEntityState(stateObj, value.hvacMode)
+        : value.hvacMode;
+    }
+    if (value.kind === "on" || value.kind === "off") {
+      return localize(this.hass, `timeline.${value.kind}`);
+    }
+    return value.label;
   }
 
   private _dayLabel(day: number): string {
@@ -538,7 +567,8 @@ export class HomeShiftScheduleCard extends LitElement {
       --mdc-icon-size: 18px;
       color: var(--secondary-text-color);
     }
-    .kind.heat {
+    .kind.heat,
+    .kind.preset {
       color: #ef9f27;
     }
     .kind.cool {

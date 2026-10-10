@@ -15,11 +15,10 @@
             "track_conditions": false,
             "actions": [
               {
-                "service": "climate.set_temperature",
+                "service": "climate.set_preset_mode",
                 "entity_id": "climate.bureau",
                 "service_data": {
-                  "temperature": 17,
-                  "hvac_mode": "heat"
+                  "preset_mode": "eco"
                 }
               }
             ]
@@ -32,11 +31,10 @@
             "track_conditions": false,
             "actions": [
               {
-                "service": "climate.set_temperature",
+                "service": "climate.set_preset_mode",
                 "entity_id": "climate.bureau",
                 "service_data": {
-                  "temperature": 20,
-                  "hvac_mode": "heat"
+                  "preset_mode": "comfort"
                 }
               }
             ]
@@ -49,11 +47,10 @@
             "track_conditions": false,
             "actions": [
               {
-                "service": "climate.set_temperature",
+                "service": "climate.set_preset_mode",
                 "entity_id": "climate.bureau",
                 "service_data": {
-                  "temperature": 17,
-                  "hvac_mode": "heat"
+                  "preset_mode": "eco"
                 }
               }
             ]

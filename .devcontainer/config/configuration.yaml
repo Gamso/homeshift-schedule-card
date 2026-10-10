@@ -130,6 +130,9 @@ climate:
     min_temp: 7
     max_temp: 28
     target_temp: 19
+    away_temp: 12
+    eco_temp: 17
+    comfort_temp: 20
     precision: 0.5
   - platform: generic_thermostat
     name: Chambre
@@ -139,6 +142,9 @@ climate:
     min_temp: 7
     max_temp: 28
     target_temp: 18
+    away_temp: 12
+    eco_temp: 17
+    comfort_temp: 20
     precision: 0.5
   - platform: generic_thermostat
     name: Salon
@@ -148,4 +154,7 @@ climate:
     min_temp: 7
     max_temp: 28
     target_temp: 20
+    away_temp: 12
+    eco_temp: 17
+    comfort_temp: 20
     precision: 0.5

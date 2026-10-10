@@ -1,6 +1,6 @@
 {
   "name": "homeshift-schedule-card",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Lovelace card showing Scheduler schedules per day mode as 24 h timelines",
   "type": "module",
