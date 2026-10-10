@@ -343,7 +343,6 @@ export class HomeShiftScheduleCard extends LitElement {
       <div class="room">
         <div class="room-head">
           <span class="room-name ${allDisabled ? "disabled" : ""}">${room.name}</span>
-          <span class="spacer"></span>
           ${typeof measured === "number"
             ? html`<span class="measured">${this._number(measured)}°</span>`
             : nothing}
@@ -563,9 +562,6 @@ export class HomeShiftScheduleCard extends LitElement {
     }
     .kind.cool {
       color: #378add;
-    }
-    .spacer {
-      flex: 1;
     }
     .measured {
       flex: none;
