@@ -1,0 +1,151 @@
+homeassistant:
+  name: HomeShift Schedule DevContainer
+  latitude: 48.8566
+  longitude: 2.3522
+  elevation: 0
+  unit_system: metric
+  country: FR
+  time_zone: Europe/Paris
+
+default_config:
+
+logger:
+  default: info
+
+# Tous les dashboards sont éditables dans l'UI. Le dashboard "Thermostat" et les
+# ressources (cartes) sont créés dans .storage par setup.sh
+# (modèle du dashboard : .devcontainer/dashboard-thermostat.yaml).
+lovelace:
+  mode: storage
+
+# ---------------------------------------------------------------------------
+# Mode du jour : simule select.homeshift_day_mode de l'intégration HomeShift
+# (template select adossé à un input_select qui stocke l'état).
+# ---------------------------------------------------------------------------
+input_select:
+  homeshift_day_mode_backing:
+    name: Mode du jour (backing)
+    options:
+      - Maison
+      - Télétravail
+      - Travail
+      - Absence
+    initial: Maison
+
+template:
+  - select:
+      - name: Homeshift day mode
+        unique_id: homeshift_day_mode
+        icon: mdi:calendar-today
+        state: "{{ states('input_select.homeshift_day_mode_backing') }}"
+        options: "{{ state_attr('input_select.homeshift_day_mode_backing', 'options') }}"
+        select_option:
+          action: input_select.select_option
+          target:
+            entity_id: input_select.homeshift_day_mode_backing
+          data:
+            option: "{{ option }}"
+
+  # Simule le switch "auto start/stop" de la clim du salon.
+  - switch:
+      - name: Salon enable auto start stop
+        unique_id: salon_enable_auto_start_stop
+        icon: mdi:air-conditioner
+        state: "{{ is_state('input_boolean.salon_auto_start_stop_backing', 'on') }}"
+        turn_on:
+          action: input_boolean.turn_on
+          target:
+            entity_id: input_boolean.salon_auto_start_stop_backing
+        turn_off:
+          action: input_boolean.turn_off
+          target:
+            entity_id: input_boolean.salon_auto_start_stop_backing
+
+  # Températures mesurées des pièces, réglables via les input_number.
+  - sensor:
+      - name: Température bureau
+        unique_id: temperature_bureau
+        device_class: temperature
+        unit_of_measurement: "°C"
+        state: "{{ states('input_number.temperature_bureau_backing') }}"
+      - name: Température chambre
+        unique_id: temperature_chambre
+        device_class: temperature
+        unit_of_measurement: "°C"
+        state: "{{ states('input_number.temperature_chambre_backing') }}"
+      - name: Température salon
+        unique_id: temperature_salon
+        device_class: temperature
+        unit_of_measurement: "°C"
+        state: "{{ states('input_number.temperature_salon_backing') }}"
+
+input_number:
+  temperature_bureau_backing:
+    name: Température bureau (simulation)
+    min: 10
+    max: 30
+    step: 0.5
+    initial: 19
+    unit_of_measurement: "°C"
+  temperature_chambre_backing:
+    name: Température chambre (simulation)
+    min: 10
+    max: 30
+    step: 0.5
+    initial: 18
+    unit_of_measurement: "°C"
+  temperature_salon_backing:
+    name: Température salon (simulation)
+    min: 10
+    max: 30
+    step: 0.5
+    initial: 20.5
+    unit_of_measurement: "°C"
+
+input_boolean:
+  force_presence:
+    name: Forcer la présence
+    icon: mdi:account-lock
+  salon_auto_start_stop_backing:
+    name: Auto start/stop salon (backing)
+  radiateur_bureau:
+    name: Radiateur bureau
+    icon: mdi:radiator
+  radiateur_chambre:
+    name: Radiateur chambre
+    icon: mdi:radiator
+  radiateur_salon:
+    name: Radiateur salon
+    icon: mdi:radiator
+
+# ---------------------------------------------------------------------------
+# Thermostats : climate.bureau, climate.chambre, climate.salon
+# ---------------------------------------------------------------------------
+climate:
+  - platform: generic_thermostat
+    name: Bureau
+    unique_id: climate_bureau
+    heater: input_boolean.radiateur_bureau
+    target_sensor: sensor.temperature_bureau
+    min_temp: 7
+    max_temp: 28
+    target_temp: 19
+    precision: 0.5
+  - platform: generic_thermostat
+    name: Chambre
+    unique_id: climate_chambre
+    heater: input_boolean.radiateur_chambre
+    target_sensor: sensor.temperature_chambre
+    min_temp: 7
+    max_temp: 28
+    target_temp: 18
+    precision: 0.5
+  - platform: generic_thermostat
+    name: Salon
+    unique_id: climate_salon
+    heater: input_boolean.radiateur_salon
+    target_sensor: sensor.temperature_salon
+    min_temp: 7
+    max_temp: 28
+    target_temp: 20
+    precision: 0.5

@@ -1,0 +1,803 @@
+{
+  "version": 3,
+  "minor_version": 1,
+  "key": "scheduler.storage",
+  "data": {
+    "schedules": [
+      {
+        "schedule_id": "1a2b30",
+        "timeslots": [
+          {
+            "start": "00:00:00",
+            "stop": "07:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.bureau",
+                "service_data": {
+                  "temperature": 17,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          },
+          {
+            "start": "07:00:00",
+            "stop": "22:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.bureau",
+                "service_data": {
+                  "temperature": 20,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          },
+          {
+            "start": "22:00:00",
+            "stop": "00:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.bureau",
+                "service_data": {
+                  "temperature": 17,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          }
+        ],
+        "weekdays": [
+          "daily"
+        ],
+        "start_date": null,
+        "end_date": null,
+        "repeat_type": "repeat",
+        "name": "Chauffage maison bureau",
+        "enabled": false
+      },
+      {
+        "schedule_id": "1a2b31",
+        "timeslots": [
+          {
+            "start": "00:00:00",
+            "stop": "06:30:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.chambre",
+                "service_data": {
+                  "temperature": 17,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          },
+          {
+            "start": "06:30:00",
+            "stop": "21:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.chambre",
+                "service_data": {
+                  "temperature": 18,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          },
+          {
+            "start": "21:00:00",
+            "stop": "00:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.chambre",
+                "service_data": {
+                  "temperature": 17.5,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          }
+        ],
+        "weekdays": [
+          "daily"
+        ],
+        "start_date": null,
+        "end_date": null,
+        "repeat_type": "repeat",
+        "name": "Chauffage maison chambre",
+        "enabled": false
+      },
+      {
+        "schedule_id": "1a2b32",
+        "timeslots": [
+          {
+            "start": "00:00:00",
+            "stop": "07:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.salon",
+                "service_data": {
+                  "temperature": 18,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          },
+          {
+            "start": "07:00:00",
+            "stop": "00:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.salon",
+                "service_data": {
+                  "temperature": 20.5,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          }
+        ],
+        "weekdays": [
+          "daily"
+        ],
+        "start_date": null,
+        "end_date": null,
+        "repeat_type": "repeat",
+        "name": "Chauffage maison salon",
+        "enabled": false
+      },
+      {
+        "schedule_id": "1a2b33",
+        "timeslots": [
+          {
+            "start": "10:00:00",
+            "stop": null,
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "switch.turn_on",
+                "entity_id": "switch.salon_enable_auto_start_stop",
+                "service_data": {}
+              }
+            ]
+          },
+          {
+            "start": "11:00:00",
+            "stop": "15:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.salon",
+                "service_data": {
+                  "temperature": 26,
+                  "hvac_mode": "cool"
+                }
+              }
+            ]
+          },
+          {
+            "start": "15:00:00",
+            "stop": "20:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.salon",
+                "service_data": {
+                  "temperature": 25,
+                  "hvac_mode": "cool"
+                }
+              }
+            ]
+          },
+          {
+            "start": "23:00:00",
+            "stop": null,
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "switch.turn_off",
+                "entity_id": "switch.salon_enable_auto_start_stop",
+                "service_data": {}
+              }
+            ]
+          }
+        ],
+        "weekdays": [
+          "daily"
+        ],
+        "start_date": null,
+        "end_date": null,
+        "repeat_type": "repeat",
+        "name": "Climatisation maison salon",
+        "enabled": true
+      },
+      {
+        "schedule_id": "1a2b34",
+        "timeslots": [
+          {
+            "start": "00:00:00",
+            "stop": "08:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.bureau",
+                "service_data": {
+                  "temperature": 17,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          },
+          {
+            "start": "08:00:00",
+            "stop": "18:30:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.bureau",
+                "service_data": {
+                  "temperature": 20.5,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          },
+          {
+            "start": "18:30:00",
+            "stop": "00:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.bureau",
+                "service_data": {
+                  "temperature": 17,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          }
+        ],
+        "weekdays": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri"
+        ],
+        "start_date": null,
+        "end_date": null,
+        "repeat_type": "repeat",
+        "name": "Chauffage télétravail bureau",
+        "enabled": true
+      },
+      {
+        "schedule_id": "1a2b35",
+        "timeslots": [
+          {
+            "start": "00:00:00",
+            "stop": "06:30:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.chambre",
+                "service_data": {
+                  "temperature": 17,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          },
+          {
+            "start": "06:30:00",
+            "stop": "08:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.chambre",
+                "service_data": {
+                  "temperature": 19,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          },
+          {
+            "start": "08:00:00",
+            "stop": "21:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.chambre",
+                "service_data": {
+                  "temperature": 17,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          },
+          {
+            "start": "21:00:00",
+            "stop": "00:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.chambre",
+                "service_data": {
+                  "temperature": 18,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          }
+        ],
+        "weekdays": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri"
+        ],
+        "start_date": null,
+        "end_date": null,
+        "repeat_type": "repeat",
+        "name": "Chauffage télétravail chambre",
+        "enabled": true
+      },
+      {
+        "schedule_id": "1a2b36",
+        "timeslots": [
+          {
+            "start": "00:00:00",
+            "stop": "07:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.salon",
+                "service_data": {
+                  "temperature": 18,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          },
+          {
+            "start": "07:00:00",
+            "stop": "23:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.salon",
+                "service_data": {
+                  "temperature": 20,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          }
+        ],
+        "weekdays": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri"
+        ],
+        "start_date": null,
+        "end_date": null,
+        "repeat_type": "repeat",
+        "name": "Chauffage télétravail salon",
+        "enabled": true
+      },
+      {
+        "schedule_id": "1a2b37",
+        "timeslots": [
+          {
+            "start": "12:00:00",
+            "stop": "19:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.salon",
+                "service_data": {
+                  "temperature": 26,
+                  "hvac_mode": "cool"
+                }
+              }
+            ]
+          }
+        ],
+        "weekdays": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri"
+        ],
+        "start_date": null,
+        "end_date": null,
+        "repeat_type": "repeat",
+        "name": "Climatisation télétravail salon",
+        "enabled": false
+      },
+      {
+        "schedule_id": "1a2b38",
+        "timeslots": [
+          {
+            "start": "00:00:00",
+            "stop": "06:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.chambre",
+                "service_data": {
+                  "temperature": 17,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          },
+          {
+            "start": "06:00:00",
+            "stop": "07:30:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.chambre",
+                "service_data": {
+                  "temperature": 19,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          },
+          {
+            "start": "07:30:00",
+            "stop": "21:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.chambre",
+                "service_data": {
+                  "temperature": 16,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          },
+          {
+            "start": "21:00:00",
+            "stop": "00:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.chambre",
+                "service_data": {
+                  "temperature": 18,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          }
+        ],
+        "weekdays": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri"
+        ],
+        "start_date": null,
+        "end_date": null,
+        "repeat_type": "repeat",
+        "name": "Chauffage travail chambre",
+        "enabled": true
+      },
+      {
+        "schedule_id": "1a2b39",
+        "timeslots": [
+          {
+            "start": "06:00:00",
+            "stop": "08:00:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.salon",
+                "service_data": {
+                  "temperature": 20,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          },
+          {
+            "start": "08:00:00",
+            "stop": "17:30:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.salon",
+                "service_data": {
+                  "temperature": 17,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          },
+          {
+            "start": "17:30:00",
+            "stop": "22:30:00",
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.salon",
+                "service_data": {
+                  "temperature": 20,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          }
+        ],
+        "weekdays": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri"
+        ],
+        "start_date": null,
+        "end_date": null,
+        "repeat_type": "repeat",
+        "name": "Chauffage travail salon",
+        "enabled": true
+      },
+      {
+        "schedule_id": "1a2b3a",
+        "timeslots": [
+          {
+            "start": "17:00:00",
+            "stop": null,
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "input_boolean.turn_on",
+                "entity_id": "input_boolean.force_presence",
+                "service_data": {}
+              }
+            ]
+          },
+          {
+            "start": "22:30:00",
+            "stop": null,
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "input_boolean.turn_off",
+                "entity_id": "input_boolean.force_presence",
+                "service_data": {}
+              }
+            ]
+          }
+        ],
+        "weekdays": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri"
+        ],
+        "start_date": null,
+        "end_date": null,
+        "repeat_type": "repeat",
+        "name": "Présence forcée travail",
+        "enabled": true
+      },
+      {
+        "schedule_id": "1a2b3b",
+        "timeslots": [
+          {
+            "start": "00:00:00",
+            "stop": null,
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.bureau",
+                "service_data": {
+                  "temperature": 12,
+                  "hvac_mode": "heat"
+                }
+              },
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.chambre",
+                "service_data": {
+                  "temperature": 12,
+                  "hvac_mode": "heat"
+                }
+              },
+              {
+                "service": "climate.set_temperature",
+                "entity_id": "climate.salon",
+                "service_data": {
+                  "temperature": 12,
+                  "hvac_mode": "heat"
+                }
+              }
+            ]
+          }
+        ],
+        "weekdays": [
+          "daily"
+        ],
+        "start_date": null,
+        "end_date": null,
+        "repeat_type": "repeat",
+        "name": "Hors-gel absence",
+        "enabled": true
+      },
+      {
+        "schedule_id": "1a2b3c",
+        "timeslots": [
+          {
+            "start": "08:00:00",
+            "stop": null,
+            "conditions": [],
+            "condition_type": null,
+            "track_conditions": false,
+            "actions": [
+              {
+                "service": "switch.turn_off",
+                "entity_id": "switch.salon_enable_auto_start_stop",
+                "service_data": {}
+              }
+            ]
+          }
+        ],
+        "weekdays": [
+          "daily"
+        ],
+        "start_date": null,
+        "end_date": null,
+        "repeat_type": "repeat",
+        "name": "Arrêt clim absence",
+        "enabled": true
+      }
+    ],
+    "tags": [
+      {
+        "name": "Maison",
+        "schedules": [
+          "1a2b30",
+          "1a2b31",
+          "1a2b32",
+          "1a2b33"
+        ]
+      },
+      {
+        "name": "Télétravail",
+        "schedules": [
+          "1a2b34",
+          "1a2b35",
+          "1a2b36",
+          "1a2b37"
+        ]
+      },
+      {
+        "name": "Travail",
+        "schedules": [
+          "1a2b38",
+          "1a2b39",
+          "1a2b3a"
+        ]
+      },
+      {
+        "name": "Absence",
+        "schedules": [
+          "1a2b3b",
+          "1a2b3c"
+        ]
+      }
+    ]
+  }
+}

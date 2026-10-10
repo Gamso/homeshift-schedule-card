@@ -1,0 +1,164 @@
+/** A schedule as returned by the scheduler component's `scheduler` websocket command. */
+export interface Schedule {
+  schedule_id: string;
+  entity_id: string;
+  name: string;
+  enabled: boolean;
+  weekdays: string[];
+  tags?: string[];
+  timeslots: Timeslot[];
+}
+
+export interface Timeslot {
+  start: string;
+  stop: string | null;
+  actions: { service: string; entity_id?: string; service_data?: Record<string, any> }[];
+}
+
+export type ValueKind = "heat" | "cool" | "off" | "on" | "other";
+
+/** What a timeslot sets its entity to. */
+export interface SlotValue {
+  kind: ValueKind;
+  temperature?: number;
+  /** Short text shown in the segment ("20°", "On"...); the card localizes temperatures. */
+  label: string;
+}
+
+/** Part of the day, in minutes since midnight, during which a value applies. */
+export interface Segment {
+  start: number;
+  end: number;
+  value: SlotValue;
+}
+
+export const DAY_MINUTES = 24 * 60;
+/** Weekday keys of the scheduler component, indexed like Date.getDay(). */
+export const WEEKDAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+
+/** "07:30:00" → 450. */
+export function parseTime(time: string): number {
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + (m || 0);
+}
+
+/** "HH:MM" of a number of minutes since midnight. */
+export function formatMinutes(minutes: number): string {
+  const m = minutes % DAY_MINUTES;
+  return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+}
+
+/** Whether a schedule runs on a day (Date.getDay() index). */
+export function appliesOn(schedule: Schedule, day: number): boolean {
+  const days = schedule.weekdays ?? [];
+  if (days.includes("daily")) return true;
+  if (days.includes("workday") && day >= 1 && day <= 5) return true;
+  if (days.includes("weekend") && (day === 0 || day === 6)) return true;
+  return days.includes(WEEKDAYS[day]);
+}
+
+const isClimate = (action: Timeslot["actions"][number]) => action.service.startsWith("climate.");
+
+/** Whether a schedule drives a thermostat: its timeline then shows only the thermostat. */
+function drivesClimate(schedule: Schedule): boolean {
+  return schedule.timeslots.some((slot) => slot.actions.some(isClimate));
+}
+
+/** Value set by a timeslot, from its first thermostat action, else its first action. */
+export function slotValue(slot: Timeslot): SlotValue {
+  const action = slot.actions?.find(isClimate) ?? slot.actions?.[0];
+  if (!action) return { kind: "other", label: "" };
+  const [, service] = action.service.split(".");
+  const data = action.service_data ?? {};
+  const mode = data.hvac_mode;
+  if (mode === "off" || service === "turn_off") return { kind: "off", label: "Off" };
+  if (typeof data.temperature === "number") {
+    return {
+      kind: mode === "cool" ? "cool" : "heat",
+      temperature: data.temperature,
+      label: `${data.temperature}°`,
+    };
+  }
+  if (mode === "cool") return { kind: "cool", label: "Clim" };
+  if (mode) return { kind: "heat", label: mode };
+  if (service === "turn_on") return { kind: "on", label: "On" };
+  return { kind: "other", label: service ?? action.service };
+}
+
+/**
+ * Segments of the day a schedule covers. A timeslot with a stop time spans
+ * start → stop (across midnight if stop is earlier); a timeslot without one
+ * is a single action whose value holds until the next timeslot, wrapping
+ * around midnight.
+ */
+export function daySegments(schedule: Schedule): Segment[] {
+  const climate = drivesClimate(schedule);
+  const slots = schedule.timeslots
+    .filter((slot) => !climate || slot.actions.some(isClimate))
+    .map((slot) => ({ slot, start: parseTime(slot.start) }))
+    .sort((a, b) => a.start - b.start);
+  const segments: Segment[] = [];
+
+  slots.forEach(({ slot, start }, i) => {
+    const value = slotValue(slot);
+    let end: number;
+    if (slot.stop != null) {
+      end = parseTime(slot.stop);
+      if (end <= start) end += DAY_MINUTES;
+    } else {
+      const next = slots[(i + 1) % slots.length].start;
+      end = next > start ? next : next + DAY_MINUTES;
+    }
+    if (end > DAY_MINUTES) {
+      segments.push({ start, end: DAY_MINUTES, value });
+      if (end - DAY_MINUTES > 0) segments.push({ start: 0, end: end - DAY_MINUTES, value });
+    } else {
+      segments.push({ start, end, value });
+    }
+  });
+
+  return segments.filter((s) => s.end > s.start).sort((a, b) => a.start - b.start);
+}
+
+/**
+ * Entities a schedule acts on. With `shown`, only those of its timeline:
+ * its thermostats when it drives some.
+ */
+export function scheduleEntities(schedule: Schedule, shown = false): string[] {
+  const climate = shown && drivesClimate(schedule);
+  const ids = schedule.timeslots.flatMap((slot) =>
+    slot.actions
+      .filter((a) => !climate || isClimate(a))
+      .map((a) => a.entity_id)
+      .filter((id): id is string => !!id),
+  );
+  return [...new Set(ids)];
+}
+
+/** Schedules of a tab: tagged with its tag, and acting on its entities when it has some. */
+export function schedulesFor(schedules: Schedule[], tag: string, entities: string[]): Schedule[] {
+  return schedules
+    .filter((s) => s.tags?.includes(tag))
+    .filter((s) => !entities.length || scheduleEntities(s).some((e) => entities.includes(e)))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** Segment background and text colors: warmer for higher setpoints. */
+export function segmentColors(value: SlotValue): { background: string; color: string } {
+  switch (value.kind) {
+    case "cool":
+      return { background: "#378ADD", color: "#fff" };
+    case "off":
+      return { background: "var(--divider-color, #5F5E5A)", color: "var(--secondary-text-color)" };
+    case "on":
+      return { background: "#1D9E75", color: "#fff" };
+    case "other":
+      return { background: "#888780", color: "#fff" };
+  }
+  const t = value.temperature ?? 19;
+  if (t < 15) return { background: "#85B7EB", color: "#042C53" };
+  if (t < 17.5) return { background: "#FAC775", color: "#412402" };
+  if (t < 19.5) return { background: "#EF9F27", color: "#412402" };
+  if (t < 21) return { background: "#D85A30", color: "#fff" };
+  return { background: "#A32D2D", color: "#fff" };
+}

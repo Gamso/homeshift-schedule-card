@@ -1,0 +1,23 @@
+{
+  "tabs": {
+    "active_mode": "Active mode"
+  },
+  "timeline": {
+    "edit": "Edit schedules",
+    "back": "Back to timeline",
+    "empty": "No schedule on that day",
+    "next": "{value} at {time}"
+  },
+  "mode_bar": {
+    "current": "Current mode: {mode}",
+    "activate": "Activate {mode}"
+  },
+  "scheduler": {
+    "next_run": "Next run",
+    "days": "Schedule"
+  },
+  "errors": {
+    "no_modes": "No mode to show: {entity} has no options.",
+    "schedules_unavailable": "Could not read the schedules: is the Scheduler integration installed?"
+  }
+}

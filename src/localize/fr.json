@@ -1,0 +1,23 @@
+{
+  "tabs": {
+    "active_mode": "Mode actif"
+  },
+  "timeline": {
+    "edit": "Modifier les planifications",
+    "back": "Retour à la frise",
+    "empty": "Aucune planification ce jour-là",
+    "next": "{value} à {time}"
+  },
+  "mode_bar": {
+    "current": "Mode actuel : {mode}",
+    "activate": "Activer {mode}"
+  },
+  "scheduler": {
+    "next_run": "Prochain lancement",
+    "days": "Planification"
+  },
+  "errors": {
+    "no_modes": "Aucun mode à afficher : {entity} n'a pas d'options.",
+    "schedules_unavailable": "Impossible de lire les planifications : l'intégration Scheduler est-elle installée ?"
+  }
+}

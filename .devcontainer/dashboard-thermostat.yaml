@@ -1,0 +1,66 @@
+# Seed of the "Thermostat" dashboard (storage mode, editable in the UI).
+# setup.sh copies it into .storage/lovelace.dashboard_thermostat when that file does not exist yet.
+title: Thermostat
+views:
+  - title: Thermostat
+    path: thermostat
+    icon: mdi:thermostat
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Thermostat
+            icon: mdi:thermostat-auto
+          # Équivalent de l'ancienne configuration tabbed-card-programmable + 4 scheduler-card
+          - type: custom:homeshift-schedule-card
+            mode_entity: select.homeshift_day_mode
+            entities:
+              - switch.salon_enable_auto_start_stop
+              - climate.bureau
+              - climate.chambre
+              - climate.salon
+            extra_entities:
+              Travail:
+                - input_boolean.force_presence
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Simulation
+            icon: mdi:tune
+          - type: entities
+            entities:
+              - entity: select.homeshift_day_mode
+                name: Mode du jour
+              - input_boolean.force_presence
+              - switch.salon_enable_auto_start_stop
+              - input_number.temperature_bureau_backing
+              - input_number.temperature_chambre_backing
+              - input_number.temperature_salon_backing
+          - type: thermostat
+            entity: climate.salon
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Variante
+            icon: mdi:flask-outline
+          # Onglets explicites (ordre, libellé), sans suivi du mode ni bouton d'activation
+          - type: custom:homeshift-schedule-card
+            mode_entity: select.homeshift_day_mode
+            follow_mode: false
+            allow_mode_change: false
+            accent_color: "#E07A1F"
+            name_color: "#4FC3F7"
+            modes:
+              - Maison
+              - name: Absence
+                label: Vacances
+            entities:
+              - climate.bureau
+              - climate.chambre
+              - climate.salon
+            scheduler:
+              time_step: 15

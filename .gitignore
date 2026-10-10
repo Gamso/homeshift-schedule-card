@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/*.map
+
+# Home Assistant runtime state of the devcontainer (only the seeds are versioned)
+.devcontainer/config/*
+!.devcontainer/config/configuration.yaml
+
+# Temp files
+.DS_Store
+*.log
