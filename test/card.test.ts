@@ -202,15 +202,22 @@ describe("homeshift-schedule-card, timeline layout", () => {
     });
   });
 
-  it("opens the scheduler card to edit, and comes back", async () => {
+  it("opens the scheduler card to edit from the header button, and comes back", async () => {
     const card = await renderCard(makeHass("Maison"), timeline);
     expect(scheduler(card)).toBeNull();
-    ($(card, ".footer .link") as HTMLButtonElement).click();
+    expect($(card, ".edit ha-icon")!.getAttribute("icon")).toBe("mdi:pencil");
+    $(card, ".edit")!.click();
     await settle(card);
     expect(scheduler(card)!.config.tags).toEqual(["Maison"]);
-    ($(card, ".content > .link") as HTMLButtonElement).click();
+    expect($(card, ".edit")!.getAttribute("aria-pressed")).toBe("true");
+    $(card, ".edit")!.click();
     await settle(card);
     expect($(card, ".timeline")).not.toBeNull();
+  });
+
+  it("has no edit button in the list layout", async () => {
+    const card = await renderCard(makeHass("Maison"), { ...timeline, layout: "list" });
+    expect($(card, ".edit")).toBeNull();
   });
 
   it("fetches the schedules again only when a schedule switch changes", async () => {

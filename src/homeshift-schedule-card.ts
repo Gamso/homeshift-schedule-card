@@ -233,48 +233,59 @@ export class HomeShiftScheduleCard extends LitElement {
 
     return html`
       <ha-card class="root" style="--hsc-accent: ${accent}">
-        <div
-          class="tabs"
-          role="tablist"
-          @keydown=${(ev: KeyboardEvent) => this._onTabKeydown(ev, modes)}
-        >
-          ${modes.map((mode) => {
-            const isSelected = mode.name === selected.name;
-            return html`
-              <button
-                class="tab ${isSelected ? "selected" : ""}"
-                role="tab"
-                aria-selected=${isSelected ? "true" : "false"}
-                tabindex=${isSelected ? 0 : -1}
-                @click=${() => this._select(mode.name)}
-              >
-                <span class="label">${mode.label}</span>
-                ${mode.name === active
-                  ? html`<span
-                      class="active-dot"
-                      title=${localize(this.hass, "tabs.active_mode")}
-                      aria-label=${localize(this.hass, "tabs.active_mode")}
-                    ></span>`
-                  : nothing}
-              </button>
-            `;
-          })}
+        <div class="header">
+          <div
+            class="tabs"
+            role="tablist"
+            @keydown=${(ev: KeyboardEvent) => this._onTabKeydown(ev, modes)}
+          >
+            ${modes.map((mode) => {
+              const isSelected = mode.name === selected.name;
+              return html`
+                <button
+                  class="tab ${isSelected ? "selected" : ""}"
+                  role="tab"
+                  aria-selected=${isSelected ? "true" : "false"}
+                  tabindex=${isSelected ? 0 : -1}
+                  @click=${() => this._select(mode.name)}
+                >
+                  <span class="label">${mode.label}</span>
+                  ${mode.name === active
+                    ? html`<span
+                        class="active-dot"
+                        title=${localize(this.hass, "tabs.active_mode")}
+                        aria-label=${localize(this.hass, "tabs.active_mode")}
+                      ></span>`
+                    : nothing}
+                </button>
+              `;
+            })}
+          </div>
+          ${this._timeline ? this._renderEditButton() : nothing}
         </div>
         <div class="content" role="tabpanel">${this._renderContent(selected)}</div>
       </ha-card>
     `;
   }
 
+  /** Switches between the timelines and the scheduler card that edits them. */
+  private _renderEditButton() {
+    const label = localize(this.hass, this._editing ? "timeline.back" : "timeline.edit");
+    return html`
+      <button
+        class="edit"
+        title=${label}
+        aria-label=${label}
+        aria-pressed=${this._editing ? "true" : "false"}
+        @click=${() => (this._editing = !this._editing)}
+      >
+        <ha-icon icon=${this._editing ? "mdi:chart-timeline" : "mdi:pencil"}></ha-icon>
+      </button>
+    `;
+  }
+
   private _renderContent(mode: ResolvedMode) {
-    if (!this._timeline) return this._card(mode) ?? nothing;
-    if (this._editing) {
-      return html`
-        <button class="link" @click=${() => (this._editing = false)}>
-          <ha-icon icon="mdi:chart-timeline"></ha-icon>${localize(this.hass, "timeline.back")}
-        </button>
-        ${this._card(mode) ?? nothing}
-      `;
-    }
+    if (!this._timeline || this._editing) return this._card(mode) ?? nothing;
     return this._renderTimeline(mode);
   }
 
@@ -298,11 +309,6 @@ export class HomeShiftScheduleCard extends LitElement {
                 )}
               </div>
             `}
-        <div class="footer">
-          <button class="link" @click=${() => (this._editing = true)}>
-            <ha-icon icon="mdi:pencil"></ha-icon>${localize(this.hass, "timeline.edit")}
-          </button>
-        </div>
       </div>
     `;
   }
@@ -644,23 +650,40 @@ export class HomeShiftScheduleCard extends LitElement {
       text-align: center;
       color: var(--secondary-text-color);
     }
-    .footer {
+    .header {
       display: flex;
-      border-top: 1px solid var(--divider-color);
-      padding-top: 8px;
-    }
-    .link {
-      display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+    }
+    .header .tabs {
+      flex: 1;
+      min-width: 0;
+    }
+    .edit {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      padding: 0;
       border: none;
-      background: none;
-      padding: 4px 0;
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--primary-text-color) 7%, transparent);
       color: var(--primary-color);
-      font: inherit;
-      font-weight: 500;
       cursor: pointer;
-      --mdc-icon-size: 18px;
+      --mdc-icon-size: 20px;
+    }
+    .edit:hover {
+      background: color-mix(in srgb, var(--primary-text-color) 12%, transparent);
+    }
+    .edit[aria-pressed="true"] {
+      background: var(--hsc-accent);
+      color: #fff;
+    }
+    .edit:focus-visible {
+      outline: 2px solid var(--hsc-accent);
+      outline-offset: 1px;
     }
   `;
 }

@@ -33,7 +33,7 @@ extra_entities:
 
 ### Mode tabs
 
-One tab per option of the mode entity, in its order: add a mode to the entity and its tab appears. A dot marks the active mode, and the card switches to its tab whenever the mode changes. Left and right arrow keys move between tabs.
+A segmented control at the top of the card has one button per option of the mode entity, in its order: add a mode to the entity and its tab appears. A dot marks the active mode, and the card switches to its tab whenever the mode changes. Left and right arrow keys move between tabs.
 
 ### 24 h timelines
 
@@ -58,7 +58,7 @@ The timelines are read from the Scheduler integration and refresh as soon as a s
 
 ### Editing schedules
 
-**Edit schedules** shows the [scheduler-card](https://github.com/nielsfaber/scheduler-card) list of the tab, with **Add** and the full editor, already filtered on the tab's tag and entities. **Back to timeline** returns to the timelines. Set `layout: list` to always show that list instead of the timelines.
+The pencil button next to the modes shows the [scheduler-card](https://github.com/nielsfaber/scheduler-card) list of the tab, with **Add** and the full editor, already filtered on the tab's tag and entities. Press it again to come back to the timelines. Set `layout: list` to always show that list instead of the timelines.
 
 ---
 
