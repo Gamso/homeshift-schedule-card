@@ -151,14 +151,11 @@ describe("homeshift-schedule-card, timeline layout", () => {
     expect($(card, ".badge.cool")!.textContent).toBe("Clim");
   });
 
-  it("only shows the schedules running on the selected day", async () => {
+  it("shows every schedule of the tab, whatever its days", async () => {
     const card = await renderCard(makeHass("Travail"), timeline);
-    $$(card, ".day")[0].click(); // Monday
-    await settle(card);
     expect($$(card, ".row")).toHaveLength(1);
-    $$(card, ".day")[6].click(); // Sunday
+    $$(card, ".tab")[3].click(); // Absence: no schedule
     await settle(card);
-    expect($$(card, ".row")).toHaveLength(0);
     expect($(card, ".empty")!.textContent).toContain("Aucune planification");
   });
 

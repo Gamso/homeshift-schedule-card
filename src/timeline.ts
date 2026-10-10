@@ -42,8 +42,6 @@ export interface Segment {
 }
 
 export const DAY_MINUTES = 24 * 60;
-/** Weekday keys of the scheduler component, indexed like Date.getDay(). */
-export const WEEKDAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
 /** "07:30:00" → 450. */
 export function parseTime(time: string): number {
@@ -55,15 +53,6 @@ export function parseTime(time: string): number {
 export function formatMinutes(minutes: number): string {
   const m = minutes % DAY_MINUTES;
   return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
-}
-
-/** Whether a schedule runs on a day (Date.getDay() index). */
-export function appliesOn(schedule: Schedule, day: number): boolean {
-  const days = schedule.weekdays ?? [];
-  if (days.includes("daily")) return true;
-  if (days.includes("workday") && day >= 1 && day <= 5) return true;
-  if (days.includes("weekend") && (day === 0 || day === 6)) return true;
-  return days.includes(WEEKDAYS[day]);
 }
 
 const isClimate = (action: Timeslot["actions"][number]) => action.service.startsWith("climate.");

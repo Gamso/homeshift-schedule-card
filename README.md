@@ -50,7 +50,6 @@ Each schedule of the tab is drawn as a timeline of the day, one segment per time
 - Setpoints, presets ("Comfort", "Eco"…) and HVAC modes are shown as Home Assistant names them, in your language.
 - A vertical line marks the current time.
 - Next to the name, the room temperature measured by the thermostat, and a **Cooling** badge on cooling schedules to tell them from heating ones on the same room.
-- A day selector (Mon → Sun, today by default) shows the schedules of any day of the week: weekday-only schedules disappear on the weekend.
 - The switch of each row enables or disables the schedule. A disabled schedule keeps its colours, hatched, so the tabs of inactive modes stay as readable as the active one.
 - Back-to-back time slots setting the same value are drawn as one segment.
 - A schedule that drives a thermostat shows only its thermostat actions: an "auto start" switch turned on in the same schedule does not clutter the timeline.
@@ -102,7 +101,7 @@ Tag each schedule with the name of its mode (in the scheduler-card editor, **Opt
 | `extra_entities`    | —                           | Entities offered in one tab only, by mode name.                                                       |
 | `layout`            | `timeline`                  | `timeline`: 24 h timelines; `list`: the scheduler-card list straight away.                            |
 | `follow_mode`       | `true`                      | Switch to the active mode's tab when the mode changes.                                                |
-| `accent_color`      | `#44739E`                   | Colour of the tabs, day selector and button.                                                          |
+| `accent_color`      | `#44739E`                   | Colour of the tabs.                                                                                   |
 | `name_color`        | `orange`                    | Colour of the schedule names in the scheduler-card list.                                              |
 | `scheduler`         | see below                   | scheduler-card options merged over the defaults (`time_step`, `sort_by`, `display_options`…).         |
 

@@ -14,7 +14,6 @@ import {
   Schedule,
   Segment,
   SlotValue,
-  appliesOn,
   daySegments,
   formatMinutes,
   scheduleEntities,
@@ -22,8 +21,6 @@ import {
   segmentColors,
 } from "./timeline";
 
-/** Days in the order of the day selector, as Date.getDay() indexes. */
-const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
 const KIND_ICONS: Record<string, string> = {
   heat: "mdi:radiator",
   cool: "mdi:snowflake",
@@ -61,8 +58,6 @@ export class HomeShiftScheduleCard extends LitElement {
   /** Every schedule of the scheduler component (timeline layout). */
   @state() private _schedules?: Schedule[];
   @state() private _schedulesError = false;
-  /** Day shown by the timelines, as a Date.getDay() index. */
-  @state() private _day = new Date().getDay();
   /** Whether the timeline layout shows the scheduler card, to edit schedules. */
   @state() private _editing = false;
   /** Fingerprint of the schedule switches, to refetch the schedules when they change. */
@@ -268,33 +263,16 @@ export class HomeShiftScheduleCard extends LitElement {
     if (this._schedulesError) {
       return html`<ha-alert alert-type="error">${localize(this.hass, "errors.schedules_unavailable")}</ha-alert>`;
     }
-    const today = new Date().getDay();
-    const isToday = this._day === today;
     const now = new Date();
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
-    const schedules = schedulesFor(this._schedules ?? [], mode.tag, mode.entities).filter((s) =>
-      appliesOn(s, this._day),
-    );
+    const schedules = schedulesFor(this._schedules ?? [], mode.tag, mode.entities);
 
     return html`
       <div class="timeline">
-        <div class="days">
-          ${WEEK_ORDER.map(
-            (day) => html`
-              <button
-                class="day ${day === this._day ? "selected" : ""} ${day === today ? "today" : ""}"
-                aria-pressed=${day === this._day ? "true" : "false"}
-                @click=${() => (this._day = day)}
-              >
-                ${this._dayLabel(day)}
-              </button>
-            `,
-          )}
-        </div>
         ${this._schedules && !schedules.length
           ? html`<div class="empty">${localize(this.hass, "timeline.empty")}</div>`
           : html`
-              ${schedules.map((s) => this._renderRow(s, isToday ? nowMinutes : undefined))}
+              ${schedules.map((s) => this._renderRow(s, nowMinutes))}
               <div class="axis" aria-hidden="true">
                 ${[0, 6, 12, 18, 24].map(
                   (h) => html`<span style="left: ${(h / 24) * 100}%">${h}h</span>`,
@@ -394,12 +372,6 @@ export class HomeShiftScheduleCard extends LitElement {
     return value.label;
   }
 
-  private _dayLabel(day: number): string {
-    // 2024-01-07 is a Sunday: adding the Date.getDay() index gives that weekday.
-    const date = new Date(2024, 0, 7 + day);
-    const language = this.hass.locale?.language ?? this.hass.language ?? "en";
-    return date.toLocaleDateString(language, { weekday: "short" }).replace(".", "");
-  }
 
   private _toggle(entityId: string, enabled: boolean) {
     this.hass.callService("switch", enabled ? "turn_off" : "turn_on", { entity_id: entityId });
@@ -471,31 +443,6 @@ export class HomeShiftScheduleCard extends LitElement {
       border: 1px solid var(--divider-color);
       border-radius: var(--ha-card-border-radius, 12px);
       background: var(--ha-card-background, var(--card-background-color));
-    }
-    .days {
-      display: flex;
-      gap: 4px;
-    }
-    .day {
-      flex: 1;
-      padding: 4px 0;
-      border: 1px solid var(--divider-color);
-      border-radius: 14px;
-      background: none;
-      color: var(--secondary-text-color);
-      font: inherit;
-      font-size: 12px;
-      cursor: pointer;
-      text-transform: capitalize;
-    }
-    .day.today {
-      font-weight: 600;
-      color: var(--primary-text-color);
-    }
-    .day.selected {
-      background: color-mix(in srgb, var(--hsc-accent) 25%, transparent);
-      border-color: var(--hsc-accent);
-      color: var(--primary-text-color);
     }
     .row {
       display: flex;

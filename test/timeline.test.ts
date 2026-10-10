@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   Schedule,
-  appliesOn,
   daySegments,
   scheduleEntities,
   segmentColors,
@@ -93,16 +92,6 @@ describe("segmentColors", () => {
   });
 });
 
-describe("appliesOn", () => {
-  it("understands daily, workday, weekend and day keys", () => {
-    expect(appliesOn(schedule([], ["daily"]), 0)).toBe(true);
-    expect(appliesOn(schedule([], ["workday"]), 1)).toBe(true);
-    expect(appliesOn(schedule([], ["workday"]), 6)).toBe(false);
-    expect(appliesOn(schedule([], ["weekend"]), 0)).toBe(true);
-    expect(appliesOn(schedule([], ["mon", "fri"]), 5)).toBe(true);
-    expect(appliesOn(schedule([], ["mon", "fri"]), 3)).toBe(false);
-  });
-});
 
 describe("schedulesFor", () => {
   it("keeps the schedules of the tag acting on the tab's entities", () => {

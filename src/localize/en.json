@@ -5,7 +5,7 @@
   "timeline": {
     "edit": "Edit schedules",
     "back": "Back to timeline",
-    "empty": "No schedule on that day",
+    "empty": "No schedule for this mode",
     "on": "On",
     "off": "Off",
     "cooling": "Cooling"
